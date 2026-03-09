@@ -54,7 +54,7 @@ export function registerTenantsTools(server: McpServer, client: NksWebClient): v
         slug: z
           .string()
           .describe(
-            "Tenant slug to switch to (e.g. 'nks', 'acme'). Empty string to clear."
+            "Tenant slug to switch to (e.g. 'my-site', 'acme'). Empty string to clear."
           ),
       },
       annotations: {
