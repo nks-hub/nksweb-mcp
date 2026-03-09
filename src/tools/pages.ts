@@ -19,6 +19,11 @@ interface Page {
   [key: string]: unknown;
 }
 
+interface ApiResponse<T> {
+  status: string;
+  data: T;
+}
+
 const pageTypeSchema = z.enum([
   "default",
   "homepage",
@@ -209,7 +214,8 @@ export function registerPagesTools(
     },
     async (args) => {
       try {
-        const page = await client.get<Page>(`/pages/${args.pageId}`);
+        const resp = await client.get<ApiResponse<Page>>(`/pages/${args.pageId}`);
+        const page = resp.data;
         const extraData = (page.extraData as Record<string, unknown>) ?? {};
         const blocks =
           (extraData.content_blocks as Record<
@@ -271,7 +277,8 @@ export function registerPagesTools(
     },
     async (args) => {
       try {
-        const page = await client.get<Page>(`/pages/${args.pageId}`);
+        const resp = await client.get<ApiResponse<Page>>(`/pages/${args.pageId}`);
+        const page = resp.data;
         const extraData = {
           ...((page.extraData as Record<string, unknown>) ?? {}),
         };
@@ -320,7 +327,8 @@ export function registerPagesTools(
     },
     async (args) => {
       try {
-        const page = await client.get<Page>(`/pages/${args.pageId}`);
+        const resp = await client.get<ApiResponse<Page>>(`/pages/${args.pageId}`);
+        const page = resp.data;
         const extraData = {
           ...((page.extraData as Record<string, unknown>) ?? {}),
         };
