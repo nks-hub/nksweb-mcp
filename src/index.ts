@@ -13,6 +13,7 @@ import { registerMessagesTools } from "./tools/messages.js";
 import { registerRedirectsTools } from "./tools/redirects.js";
 import { registerSettingsTools } from "./tools/settings.js";
 import { registerAnalyticsTools } from "./tools/analytics.js";
+import { registerTenantsTools } from "./tools/tenants.js";
 
 function getConfig(): NksWebConfig {
   const baseUrl = process.env.NKSWEB_URL;
@@ -45,7 +46,9 @@ async function main() {
         "Manage pages, articles, categories, news, files, users, messages, redirects, settings, and analytics. " +
         "All write operations require appropriate API key scopes (e.g. pages:write, articles:write). " +
         "Use list tools first to discover existing content, then get/create/update/delete as needed. " +
-        "Analytics tools accept startDate/endDate (YYYY-MM-DD format, defaults to last 30 days).",
+        "Analytics tools accept startDate/endDate (YYYY-MM-DD format, defaults to last 30 days). " +
+        "Multi-tenant: Use nksweb_list_tenants to see available tenants, " +
+        "then nksweb_set_tenant to switch context. All subsequent operations will target that tenant.",
     }
   );
 
@@ -59,6 +62,7 @@ async function main() {
   registerRedirectsTools(server, client);
   registerSettingsTools(server, client);
   registerAnalyticsTools(server, client);
+  registerTenantsTools(server, client);
 
   const transport = new StdioServerTransport();
   await server.connect(transport);

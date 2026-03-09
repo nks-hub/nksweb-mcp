@@ -10,7 +10,17 @@ export interface QueryParams {
 }
 
 export class NksWebClient {
+  private tenantSlug: string | null = null;
+
   constructor(private config: NksWebConfig) {}
+
+  setTenant(slug: string | null): void {
+    this.tenantSlug = slug;
+  }
+
+  getTenant(): string | null {
+    return this.tenantSlug;
+  }
 
   async get<T>(path: string, params?: QueryParams): Promise<T> {
     return this.request<T>("GET", path, undefined, params);
@@ -58,6 +68,10 @@ export class NksWebClient {
       "X-Api-Key": this.config.apiKey,
       "Accept": "application/json",
     };
+
+    if (this.tenantSlug) {
+      headers["X-Tenant"] = this.tenantSlug;
+    }
 
     if (body) {
       headers["Content-Type"] = "application/json";
