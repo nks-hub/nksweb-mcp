@@ -11,6 +11,8 @@ export interface QueryParams {
 
 export class NksWebClient {
   private tenantSlug: string | null = null;
+  private multiTenant = false;
+  private availableTenants: string[] = [];
 
   constructor(private config: NksWebConfig) {}
 
@@ -20,6 +22,51 @@ export class NksWebClient {
 
   getTenant(): string | null {
     return this.tenantSlug;
+  }
+
+  isMultiTenant(): boolean {
+    return this.multiTenant;
+  }
+
+  getAvailableTenants(): string[] {
+    return this.availableTenants;
+  }
+
+  /**
+   * Detect tenant mode at startup.
+   * If only 1 tenant → auto-select it.
+   * If multiple → require explicit set_tenant.
+   */
+  async detectTenantMode(): Promise<void> {
+    try {
+      const resp = await this.get<{ status: string; data: Array<{ slug: string; name?: string }> }>("/tenants");
+      const tenants = resp.data ?? [];
+      this.availableTenants = tenants.map((t) => t.slug);
+
+      if (tenants.length === 1) {
+        this.tenantSlug = tenants[0].slug;
+        this.multiTenant = false;
+        console.error(`Auto-selected tenant: ${this.tenantSlug}`);
+      } else if (tenants.length > 1) {
+        this.multiTenant = true;
+        console.error(`Multi-tenant mode: ${tenants.length} tenants available. Use nksweb_set_tenant to select.`);
+      }
+    } catch {
+      console.error("Could not detect tenant mode, continuing without auto-selection.");
+    }
+  }
+
+  /**
+   * Check if a tenant is selected. Returns null if OK, error string if not.
+   */
+  requireTenant(): string | null {
+    if (this.tenantSlug) return null;
+    if (!this.multiTenant) return null;
+
+    return (
+      `No tenant selected. This API key has access to ${this.availableTenants.length} tenants: ${this.availableTenants.join(", ")}. ` +
+      `Use nksweb_set_tenant to select a tenant before performing operations.`
+    );
   }
 
   async get<T>(path: string, params?: QueryParams): Promise<T> {
@@ -63,6 +110,14 @@ export class NksWebClient {
     body?: unknown,
     params?: QueryParams
   ): Promise<T> {
+    // Tenant guard: skip for /tenants endpoint (used for discovery)
+    if (path !== "/tenants") {
+      const tenantError = this.requireTenant();
+      if (tenantError) {
+        throw new Error(tenantError);
+      }
+    }
+
     const url = this.buildUrl(path, params);
     const headers: Record<string, string> = {
       "X-Api-Key": this.config.apiKey,

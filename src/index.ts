@@ -35,6 +35,8 @@ async function main() {
   const config = getConfig();
   const client = new NksWebClient(config);
 
+  await client.detectTenantMode();
+
   const server = new McpServer(
     {
       name: "nksweb-mcp",

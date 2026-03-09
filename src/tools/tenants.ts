@@ -22,8 +22,14 @@ export function registerTenantsTools(server: McpServer, client: NksWebClient): v
     async () => {
       try {
         const data = await client.get("/tenants");
+        const current = client.getTenant();
+        const suffix = current
+          ? `\n\nCurrent tenant: ${current}`
+          : client.isMultiTenant()
+            ? `\n\nNo tenant selected. Use nksweb_set_tenant to select one.`
+            : "";
         return {
-          content: [{ type: "text" as const, text: truncateResponse(data) }],
+          content: [{ type: "text" as const, text: truncateResponse(data) + suffix }],
         };
       } catch (err) {
         return {
@@ -43,7 +49,7 @@ export function registerTenantsTools(server: McpServer, client: NksWebClient): v
       description:
         "Switch the active tenant context for all subsequent MCP operations. " +
         "After setting, all tools (pages, articles, etc.) will operate on that tenant's data. " +
-        "Pass an empty slug to clear the tenant context and return to default.",
+        "Pass an empty slug to clear the tenant context.",
       inputSchema: {
         slug: z
           .string()
@@ -63,6 +69,16 @@ export function registerTenantsTools(server: McpServer, client: NksWebClient): v
 
       if (!slug) {
         client.setTenant(null);
+        if (client.isMultiTenant()) {
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: `Tenant context cleared. You must select a tenant with nksweb_set_tenant before performing operations. Available: ${client.getAvailableTenants().join(", ")}`,
+              },
+            ],
+          };
+        }
         return {
           content: [
             {
@@ -70,6 +86,19 @@ export function registerTenantsTools(server: McpServer, client: NksWebClient): v
               text: "Tenant context cleared. Operations will use the default tenant.",
             },
           ],
+        };
+      }
+
+      const available = client.getAvailableTenants();
+      if (available.length > 0 && !available.includes(slug)) {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Tenant '${slug}' not found. Available tenants: ${available.join(", ")}`,
+            },
+          ],
+          isError: true,
         };
       }
 
