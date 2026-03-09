@@ -1,6 +1,6 @@
 {
   "name": "@nks-hub/nksweb-mcp",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "MCP server for NKS-Web CMS tenant management - manage pages, articles, news, redirects, users, and analytics via Claude Code",
   "type": "module",
   "main": "build/index.js",
