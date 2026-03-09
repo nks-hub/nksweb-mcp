@@ -1,0 +1,50 @@
+{
+  "name": "@nks-hub/nksweb-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for NKS-Web CMS tenant management - manage pages, articles, news, redirects, users, and analytics via Claude Code",
+  "type": "module",
+  "main": "build/index.js",
+  "bin": {
+    "nksweb-mcp": "./build/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node build/index.js"
+  },
+  "keywords": [
+    "mcp",
+    "nks-web",
+    "cms",
+    "claude",
+    "model-context-protocol",
+    "content-management",
+    "tenant-management"
+  ],
+  "author": "NKS Hub",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nks-hub/nksweb-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nks-hub/nksweb-mcp/issues"
+  },
+  "homepage": "https://github.com/nks-hub/nksweb-mcp#readme",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.27.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  },
+  "files": [
+    "build/",
+    "LICENSE",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
