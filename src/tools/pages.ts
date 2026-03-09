@@ -114,7 +114,7 @@ export function registerPagesTools(
         status: z.union([z.literal(0), z.literal(1)]).optional().describe("0 = draft/disabled, 1 = published/active"),
         metaTitle: z.string().optional().describe("SEO title tag (shown in browser tab and search results)"),
         metaDescription: z.string().optional().describe("SEO meta description (shown in search result snippets)"),
-        extraData: z.record(z.unknown()).optional().describe("JSON object with structured page data. For homepage type: hero (heading, badge, stats, cta_primary, cta_secondary), benefits (badge, title, description, items[]), pricing (badge, title, models[]), process (badge, title, steps[]), features (title, items[]), cta (title, description). Set to null to clear."),
+        extraData: z.record(z.unknown()).optional().describe("JSON object with structured page data. For homepage type uses hybrid model: text content in content_blocks (key → {label, content}), structural arrays in top-level keys (benefits_items[], pricing_models[], process_steps[], feature_items[]). Use nksweb_upsert_content_block for text edits. Set to null to clear all."),
         position: z.number().optional().describe("Display order — lower numbers appear first (default: 0)"),
         showInMenu: z.boolean().optional().describe("Show this page in the main navigation menu"),
         showInNavbar: z.boolean().optional().describe("Show this page in the top navbar"),
@@ -158,7 +158,7 @@ export function registerPagesTools(
         status: z.union([z.literal(0), z.literal(1)]).optional().describe("0 = draft/disabled, 1 = published/active"),
         metaTitle: z.string().optional().describe("SEO title tag (shown in browser tab and search results)"),
         metaDescription: z.string().optional().describe("SEO meta description (shown in search result snippets)"),
-        extraData: z.record(z.unknown()).optional().describe("JSON object with structured page data. For homepage type: hero (heading, badge, stats, cta_primary, cta_secondary), benefits (badge, title, description, items[]), pricing (badge, title, models[]), process (badge, title, steps[]), features (title, items[]), cta (title, description). Set to null to clear."),
+        extraData: z.record(z.unknown()).optional().describe("JSON object with structured page data. For homepage type uses hybrid model: text content in content_blocks (key → {label, content}), structural arrays in top-level keys (benefits_items[], pricing_models[], process_steps[], feature_items[]). Use nksweb_upsert_content_block for text edits. Set to null to clear all."),
         position: z.number().optional().describe("Display order — lower numbers appear first (default: 0)"),
         showInMenu: z.boolean().optional().describe("Show this page in the main navigation menu"),
         showInNavbar: z.boolean().optional().describe("Show this page in the top navbar"),
@@ -178,6 +178,178 @@ export function registerPagesTools(
         const data = await client.put<Page>(`/pages/${id}`, body);
         return {
           content: [{ type: "text" as const, text: truncateResponse(data) }],
+        };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        return {
+          content: [{ type: "text" as const, text: `Error: ${message}` }],
+          isError: true,
+        };
+      }
+    }
+  );
+
+  // === Content Block Management Tools ===
+
+  server.registerTool(
+    "nksweb_list_content_blocks",
+    {
+      title: "List Content Blocks",
+      description:
+        "List all content blocks for a page. Content blocks are named text sections stored in extraData.content_blocks, editable via Quill editors in admin. Returns key, label, and HTML content for each block.",
+      inputSchema: {
+        pageId: z.number().describe("Page ID"),
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
+    },
+    async (args) => {
+      try {
+        const page = await client.get<Page>(`/pages/${args.pageId}`);
+        const extraData = (page.extraData as Record<string, unknown>) ?? {};
+        const blocks =
+          (extraData.content_blocks as Record<
+            string,
+            { label?: string; content?: string }
+          >) ?? {};
+        const result = Object.entries(blocks).map(([key, block]) => ({
+          key,
+          label: typeof block === "object" ? block.label ?? "" : "",
+          content:
+            typeof block === "object"
+              ? block.content ?? ""
+              : typeof block === "string"
+                ? block
+                : "",
+        }));
+        return {
+          content: [{ type: "text" as const, text: truncateResponse(result) }],
+        };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        return {
+          content: [{ type: "text" as const, text: `Error: ${message}` }],
+          isError: true,
+        };
+      }
+    }
+  );
+
+  server.registerTool(
+    "nksweb_upsert_content_block",
+    {
+      title: "Create or Update Content Block",
+      description:
+        "Create or update a single content block on a page. Content blocks are named text sections (e.g. 'hero_heading', 'cta_description') stored in extraData.content_blocks. If the block key already exists, it is updated; otherwise a new block is created. Content is HTML. Preserves all other blocks and extraData keys.",
+      inputSchema: {
+        pageId: z.number().describe("Page ID"),
+        key: z
+          .string()
+          .describe(
+            "Block key — snake_case identifier (e.g. 'hero_heading', 'cta_description')"
+          ),
+        content: z
+          .string()
+          .describe("HTML content of the block"),
+        label: z
+          .string()
+          .optional()
+          .describe(
+            "Human-readable label shown in admin (e.g. 'Nadpis hero sekce')"
+          ),
+      },
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
+    },
+    async (args) => {
+      try {
+        const page = await client.get<Page>(`/pages/${args.pageId}`);
+        const extraData = {
+          ...((page.extraData as Record<string, unknown>) ?? {}),
+        };
+        const blocks = {
+          ...((extraData.content_blocks as Record<string, unknown>) ?? {}),
+        };
+        blocks[args.key] = {
+          content: args.content,
+          label: args.label ?? args.key,
+        };
+        extraData.content_blocks = blocks;
+        const data = await client.put<Page>(`/pages/${args.pageId}`, {
+          extraData,
+        });
+        return {
+          content: [{ type: "text" as const, text: truncateResponse(data) }],
+        };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        return {
+          content: [{ type: "text" as const, text: `Error: ${message}` }],
+          isError: true,
+        };
+      }
+    }
+  );
+
+  server.registerTool(
+    "nksweb_delete_content_block",
+    {
+      title: "Delete Content Block",
+      description:
+        "Delete a single content block from a page by key. The template will fall back to its hardcoded default text. Preserves all other blocks and extraData keys.",
+      inputSchema: {
+        pageId: z.number().describe("Page ID"),
+        key: z
+          .string()
+          .describe("Block key to delete (e.g. 'hero_heading')"),
+      },
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: true,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
+    },
+    async (args) => {
+      try {
+        const page = await client.get<Page>(`/pages/${args.pageId}`);
+        const extraData = {
+          ...((page.extraData as Record<string, unknown>) ?? {}),
+        };
+        const blocks = {
+          ...((extraData.content_blocks as Record<string, unknown>) ?? {}),
+        };
+        if (!(args.key in blocks)) {
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: `Block '${args.key}' not found. Available blocks: ${Object.keys(blocks).join(", ")}`,
+              },
+            ],
+            isError: true,
+          };
+        }
+        delete blocks[args.key];
+        extraData.content_blocks = blocks;
+        const data = await client.put<Page>(`/pages/${args.pageId}`, {
+          extraData,
+        });
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Block '${args.key}' deleted. ${truncateResponse(data)}`,
+            },
+          ],
         };
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
