@@ -7,7 +7,7 @@ export function registerUsersTools(server: McpServer, client: NksWebClient): voi
     "nksweb_list_users",
     {
       title: "List Users",
-      description: "List all users",
+      description: "List all admin users for the current tenant. Returns id, name, username, and role. Sensitive fields (password, tokens) are excluded from the response.",
       inputSchema: {},
       annotations: {
         readOnlyHint: true,
@@ -36,7 +36,7 @@ export function registerUsersTools(server: McpServer, client: NksWebClient): voi
     "nksweb_get_user",
     {
       title: "Get User",
-      description: "Get details of a specific user by ID",
+      description: "Get user profile by ID. Returns name, username, role, and timestamps. Password and security tokens are never exposed.",
       inputSchema: {
         id: z.number().describe("User ID"),
       },
@@ -67,12 +67,12 @@ export function registerUsersTools(server: McpServer, client: NksWebClient): voi
     "nksweb_create_user",
     {
       title: "Create User",
-      description: "Create a new user",
+      description: "Create a new admin user. Requires username (must be unique) and password. Role determines access level: 0=Admin (full access), 1=Moderator (limited access).",
       inputSchema: {
-        username: z.string().describe("Username (unique login identifier)"),
-        password: z.string().describe("User password"),
-        name: z.string().optional().describe("Display name"),
-        role: z.number().optional().describe("User role: 0 = Admin, 1 = Moderator"),
+        username: z.string().describe("Login username — must be unique across the tenant"),
+        password: z.string().describe("Login password — will be hashed server-side"),
+        name: z.string().optional().describe("Display name shown in the admin UI"),
+        role: z.number().optional().describe("0 = Admin (full access), 1 = Moderator (limited access)"),
       },
       annotations: {
         readOnlyHint: false,
@@ -101,13 +101,13 @@ export function registerUsersTools(server: McpServer, client: NksWebClient): voi
     "nksweb_update_user",
     {
       title: "Update User",
-      description: "Update an existing user by ID",
+      description: "Update a user's profile. Send only fields to change. Use to rename, change role, or reset password. Username must remain unique.",
       inputSchema: {
         id: z.number().describe("User ID"),
-        username: z.string().optional().describe("Username (unique login identifier)"),
-        password: z.string().optional().describe("New password"),
-        name: z.string().optional().describe("Display name"),
-        role: z.number().optional().describe("User role: 0 = Admin, 1 = Moderator"),
+        username: z.string().optional().describe("Login username — must be unique across the tenant"),
+        password: z.string().optional().describe("Login password — will be hashed server-side"),
+        name: z.string().optional().describe("Display name shown in the admin UI"),
+        role: z.number().optional().describe("0 = Admin (full access), 1 = Moderator (limited access)"),
       },
       annotations: {
         readOnlyHint: false,
@@ -137,9 +137,9 @@ export function registerUsersTools(server: McpServer, client: NksWebClient): voi
     "nksweb_delete_user",
     {
       title: "Delete User",
-      description: "Permanently delete a user by ID",
+      description: "Permanently delete a user account. The user will lose access immediately. Cannot be undone.",
       inputSchema: {
-        id: z.number().describe("User ID to delete"),
+        id: z.number().describe("User ID"),
       },
       annotations: {
         readOnlyHint: false,

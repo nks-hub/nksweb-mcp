@@ -7,7 +7,7 @@ export function registerNewsTools(server: McpServer, client: NksWebClient): void
     "nksweb_list_news",
     {
       title: "List News",
-      description: "List all news items",
+      description: "List all news/announcement items for the current tenant. Returns id, name, url, published status, and timestamps. News items are time-based content like announcements, updates, or press releases.",
       inputSchema: {},
       annotations: {
         readOnlyHint: true,
@@ -36,7 +36,7 @@ export function registerNewsTools(server: McpServer, client: NksWebClient): void
     "nksweb_get_news_item",
     {
       title: "Get News Item",
-      description: "Get a single news item by ID",
+      description: "Get full details of a news item by ID including HTML content and publication status.",
       inputSchema: {
         id: z.number().describe("News item ID"),
       },
@@ -67,12 +67,12 @@ export function registerNewsTools(server: McpServer, client: NksWebClient): void
     "nksweb_create_news",
     {
       title: "Create News Item",
-      description: "Create a new news item",
+      description: "Create a new news item. Requires name and url (slug). Set published=true to make it visible on the website immediately.",
       inputSchema: {
-        name: z.string().describe("News item title"),
-        url: z.string().describe("URL slug for the news item"),
-        content: z.string().optional().describe("News item content (HTML or plain text)"),
-        published: z.boolean().optional().describe("Whether the news item is published"),
+        name: z.string().describe("News headline/title"),
+        url: z.string().describe("URL slug — must be unique (e.g. 'new-feature-released')"),
+        content: z.string().optional().describe("Full news content in HTML"),
+        published: z.boolean().optional().describe("true = visible on website, false = hidden draft"),
       },
       annotations: {
         readOnlyHint: false,
@@ -101,13 +101,13 @@ export function registerNewsTools(server: McpServer, client: NksWebClient): void
     "nksweb_update_news",
     {
       title: "Update News Item",
-      description: "Update an existing news item by ID",
+      description: "Update a news item. Only send fields to change. Use to publish/unpublish (published flag) or update content.",
       inputSchema: {
         id: z.number().describe("News item ID"),
-        name: z.string().optional().describe("News item title"),
-        url: z.string().optional().describe("URL slug for the news item"),
-        content: z.string().optional().describe("News item content (HTML or plain text)"),
-        published: z.boolean().optional().describe("Whether the news item is published"),
+        name: z.string().optional().describe("News headline/title"),
+        url: z.string().optional().describe("URL slug — must be unique (e.g. 'new-feature-released')"),
+        content: z.string().optional().describe("Full news content in HTML"),
+        published: z.boolean().optional().describe("true = visible on website, false = hidden draft"),
       },
       annotations: {
         readOnlyHint: false,
@@ -137,9 +137,9 @@ export function registerNewsTools(server: McpServer, client: NksWebClient): void
     "nksweb_delete_news",
     {
       title: "Delete News Item",
-      description: "Permanently delete a news item by ID",
+      description: "Permanently delete a news item by ID. This action cannot be undone.",
       inputSchema: {
-        id: z.number().describe("News item ID to delete"),
+        id: z.number().describe("News item ID"),
       },
       annotations: {
         readOnlyHint: false,

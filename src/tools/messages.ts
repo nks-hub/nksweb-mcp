@@ -7,7 +7,7 @@ export function registerMessagesTools(server: McpServer, client: NksWebClient): 
     "nksweb_list_messages",
     {
       title: "List Messages",
-      description: "List all messages",
+      description: "List all contact form submissions received from website visitors. Returns id, name, email, phone, subject, message body, isRead flag, and timestamps. Messages are sorted newest first. Use to monitor incoming inquiries.",
       inputSchema: {},
       annotations: {
         readOnlyHint: true,
@@ -36,7 +36,7 @@ export function registerMessagesTools(server: McpServer, client: NksWebClient): 
     "nksweb_get_message",
     {
       title: "Get Message",
-      description: "Get a single message by ID",
+      description: "Get full details of a contact message including sender name, email, phone, subject, message body, IP address, read status, and timestamps.",
       inputSchema: {
         id: z.number().describe("Message ID"),
       },
@@ -67,10 +67,10 @@ export function registerMessagesTools(server: McpServer, client: NksWebClient): 
     "nksweb_mark_message_read",
     {
       title: "Mark Message Read",
-      description: "Mark a message as read or unread",
+      description: "Mark a contact message as read or unread. Defaults to marking as read. Use to track which messages have been reviewed by an admin.",
       inputSchema: {
         id: z.number().describe("Message ID"),
-        read: z.boolean().optional().default(true).describe("Whether to mark the message as read (default: true)"),
+        read: z.boolean().optional().default(true).describe("true = mark as read (default), false = mark as unread"),
       },
       annotations: {
         readOnlyHint: false,
@@ -100,9 +100,9 @@ export function registerMessagesTools(server: McpServer, client: NksWebClient): 
     "nksweb_delete_message",
     {
       title: "Delete Message",
-      description: "Permanently delete a message by ID",
+      description: "Permanently delete a contact message. Cannot be undone.",
       inputSchema: {
-        id: z.number().describe("Message ID to delete"),
+        id: z.number().describe("Message ID"),
       },
       annotations: {
         readOnlyHint: false,

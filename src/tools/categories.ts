@@ -18,7 +18,7 @@ export function registerCategoriesTools(
     "nksweb_list_categories",
     {
       title: "List Categories",
-      description: "Get a list of all article categories in the NKS Web site",
+      description: "List all article categories. Categories use a nested tree structure — root categories have parent=null, subcategories reference their parent's ID. Use to discover category hierarchy before assigning articles.",
       inputSchema: {},
       annotations: {
         readOnlyHint: true,
@@ -47,7 +47,7 @@ export function registerCategoriesTools(
     "nksweb_get_category",
     {
       title: "Get Category",
-      description: "Get a single article category by its ID",
+      description: "Get category details including title, description, and parent category reference.",
       inputSchema: {
         id: z.number().describe("Category ID"),
       },
@@ -78,11 +78,11 @@ export function registerCategoriesTools(
     "nksweb_create_category",
     {
       title: "Create Category",
-      description: "Create a new article category in the NKS Web site",
+      description: "Create a new article category. Set parentId to nest under an existing category, or omit for a root-level category.",
       inputSchema: {
-        title: z.string().describe("Category title"),
-        description: z.string().optional().describe("Category description"),
-        parentId: z.number().optional().describe("Parent category ID for nested categories"),
+        title: z.string().describe("Category display name (max 64 chars)"),
+        description: z.string().optional().describe("Category description text"),
+        parentId: z.number().optional().describe("Parent category ID for nesting — omit or null for root category"),
       },
       annotations: {
         readOnlyHint: false,
@@ -111,12 +111,12 @@ export function registerCategoriesTools(
     "nksweb_update_category",
     {
       title: "Update Category",
-      description: "Update an existing article category by its ID",
+      description: "Update a category's title, description, or parent. Moving a category (changing parentId) restructures the tree.",
       inputSchema: {
         id: z.number().describe("Category ID"),
-        title: z.string().optional().describe("Category title"),
-        description: z.string().optional().describe("Category description"),
-        parentId: z.number().optional().describe("Parent category ID for nested categories"),
+        title: z.string().optional().describe("Category display name (max 64 chars)"),
+        description: z.string().optional().describe("Category description text"),
+        parentId: z.number().optional().describe("Parent category ID for nesting — omit or null for root category"),
       },
       annotations: {
         readOnlyHint: false,
@@ -146,7 +146,7 @@ export function registerCategoriesTools(
     "nksweb_delete_category",
     {
       title: "Delete Category",
-      description: "Permanently delete an article category by its ID",
+      description: "Delete a category. Articles assigned to this category will lose the association.",
       inputSchema: {
         id: z.number().describe("Category ID"),
       },

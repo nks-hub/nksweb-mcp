@@ -24,7 +24,7 @@ export function registerArticlesTools(
     "nksweb_list_articles",
     {
       title: "List Articles",
-      description: "Get a list of all articles in the NKS Web site",
+      description: "List all blog/news articles for the current tenant. Returns id, name, url, descriptionShort, status, lang, categoryIds, and timestamps. Use this to see existing content before creating new articles.",
       inputSchema: {},
       annotations: {
         readOnlyHint: true,
@@ -53,7 +53,7 @@ export function registerArticlesTools(
     "nksweb_get_article",
     {
       title: "Get Article",
-      description: "Get a single article by its ID",
+      description: "Get full article details including HTML content, categories, SEO metadata, and timestamps.",
       inputSchema: {
         id: z.number().describe("Article ID"),
       },
@@ -84,17 +84,17 @@ export function registerArticlesTools(
     "nksweb_create_article",
     {
       title: "Create Article",
-      description: "Create a new article in the NKS Web site",
+      description: "Create a new blog article. Requires name and url (slug). Use descriptionShort for listing excerpts and description for full HTML content. Link to categories via categoryIds array. Set status=1 to publish.",
       inputSchema: {
         name: z.string().describe("Article title"),
-        url: z.string().describe("Article URL slug"),
-        descriptionShort: z.string().optional().describe("Short teaser / excerpt"),
-        description: z.string().optional().describe("Full article HTML content"),
-        status: z.union([z.literal(0), z.literal(1)]).optional().describe("Article status: 0 = draft, 1 = published"),
-        metaTitle: z.string().optional().describe("SEO meta title"),
-        metaDescription: z.string().optional().describe("SEO meta description"),
-        lang: z.string().optional().describe("Language code, e.g. 'cs' or 'en'"),
-        categoryIds: z.array(z.number()).optional().describe("Array of category IDs to assign the article to"),
+        url: z.string().describe("URL slug — must be unique, lowercase, no spaces (e.g. 'my-first-post')"),
+        descriptionShort: z.string().optional().describe("Short excerpt shown in article listings and cards"),
+        description: z.string().optional().describe("Full article content in HTML"),
+        status: z.union([z.literal(0), z.literal(1)]).optional().describe("0 = draft/disabled, 1 = published/active"),
+        metaTitle: z.string().optional().describe("SEO title tag (shown in browser tab and search results)"),
+        metaDescription: z.string().optional().describe("SEO meta description (shown in search result snippets)"),
+        lang: z.string().optional().describe("Language code ISO 639-1 (e.g. 'cs', 'en')"),
+        categoryIds: z.array(z.number()).optional().describe("Array of category IDs to assign this article to"),
       },
       annotations: {
         readOnlyHint: false,
@@ -123,18 +123,18 @@ export function registerArticlesTools(
     "nksweb_update_article",
     {
       title: "Update Article",
-      description: "Update an existing article by its ID",
+      description: "Update an existing article. Only send fields to change — omitted fields keep their current values. Use to publish drafts, update content, or reassign categories.",
       inputSchema: {
         id: z.number().describe("Article ID"),
         name: z.string().optional().describe("Article title"),
-        url: z.string().optional().describe("Article URL slug"),
-        descriptionShort: z.string().optional().describe("Short teaser / excerpt"),
-        description: z.string().optional().describe("Full article HTML content"),
-        status: z.union([z.literal(0), z.literal(1)]).optional().describe("Article status: 0 = draft, 1 = published"),
-        metaTitle: z.string().optional().describe("SEO meta title"),
-        metaDescription: z.string().optional().describe("SEO meta description"),
-        lang: z.string().optional().describe("Language code, e.g. 'cs' or 'en'"),
-        categoryIds: z.array(z.number()).optional().describe("Array of category IDs to assign the article to"),
+        url: z.string().optional().describe("URL slug — must be unique, lowercase, no spaces (e.g. 'my-first-post')"),
+        descriptionShort: z.string().optional().describe("Short excerpt shown in article listings and cards"),
+        description: z.string().optional().describe("Full article content in HTML"),
+        status: z.union([z.literal(0), z.literal(1)]).optional().describe("0 = draft/disabled, 1 = published/active"),
+        metaTitle: z.string().optional().describe("SEO title tag (shown in browser tab and search results)"),
+        metaDescription: z.string().optional().describe("SEO meta description (shown in search result snippets)"),
+        lang: z.string().optional().describe("Language code ISO 639-1 (e.g. 'cs', 'en')"),
+        categoryIds: z.array(z.number()).optional().describe("Array of category IDs to assign this article to"),
       },
       annotations: {
         readOnlyHint: false,
@@ -164,7 +164,7 @@ export function registerArticlesTools(
     "nksweb_delete_article",
     {
       title: "Delete Article",
-      description: "Permanently delete an article by its ID",
+      description: "Permanently delete an article. Soft-deleted — won't appear in listings but exists in database.",
       inputSchema: {
         id: z.number().describe("Article ID"),
       },

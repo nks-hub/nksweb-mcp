@@ -7,7 +7,7 @@ export function registerRedirectsTools(server: McpServer, client: NksWebClient):
     "nksweb_list_redirects",
     {
       title: "List Redirects",
-      description: "List all URL redirects",
+      description: "List all URL redirect rules for the current tenant. Returns oldUrl, newUrl, statusCode, active flag, hitCount, and timestamps. Redirects handle moved/renamed pages to prevent broken links and preserve SEO.",
       inputSchema: {},
       annotations: {
         readOnlyHint: true,
@@ -36,7 +36,7 @@ export function registerRedirectsTools(server: McpServer, client: NksWebClient):
     "nksweb_get_redirect",
     {
       title: "Get Redirect",
-      description: "Get a single URL redirect by ID",
+      description: "Get redirect rule details including hit count (how many times it was triggered) and last hit timestamp.",
       inputSchema: {
         id: z.number().describe("Redirect ID"),
       },
@@ -67,13 +67,13 @@ export function registerRedirectsTools(server: McpServer, client: NksWebClient):
     "nksweb_create_redirect",
     {
       title: "Create Redirect",
-      description: "Create a new URL redirect",
+      description: "Create a URL redirect rule. When a visitor hits oldUrl, they are redirected to newUrl with the specified HTTP status code. Use 301 for permanent moves (SEO-friendly), 302 for temporary, 307 for temporary with method preservation.",
       inputSchema: {
-        oldUrl: z.string().describe("The source URL to redirect from"),
-        newUrl: z.string().describe("The destination URL to redirect to"),
-        statusCode: z.number().optional().default(301).describe("HTTP status code for the redirect (default: 301)"),
-        active: z.boolean().optional().default(true).describe("Whether the redirect is active (default: true)"),
-        note: z.string().optional().describe("Optional note or description for the redirect"),
+        oldUrl: z.string().describe("Source URL path to redirect from (without leading slash, e.g. 'old-page')"),
+        newUrl: z.string().describe("Target URL to redirect to (e.g. '/new-page' or full URL)"),
+        statusCode: z.number().optional().default(301).describe("HTTP redirect code: 301=permanent, 302=temporary, 307=temporary-preserve-method (default: 301)"),
+        active: z.boolean().optional().default(true).describe("true = redirect is active, false = disabled (default: true)"),
+        note: z.string().optional().describe("Internal admin note about why this redirect exists"),
       },
       annotations: {
         readOnlyHint: false,
@@ -102,14 +102,14 @@ export function registerRedirectsTools(server: McpServer, client: NksWebClient):
     "nksweb_update_redirect",
     {
       title: "Update Redirect",
-      description: "Update an existing URL redirect by ID",
+      description: "Update a redirect rule. Use to change target URL, switch status code, enable/disable, or update notes.",
       inputSchema: {
         id: z.number().describe("Redirect ID"),
-        oldUrl: z.string().optional().describe("The source URL to redirect from"),
-        newUrl: z.string().optional().describe("The destination URL to redirect to"),
-        statusCode: z.number().optional().describe("HTTP status code for the redirect"),
-        active: z.boolean().optional().describe("Whether the redirect is active"),
-        note: z.string().optional().describe("Optional note or description for the redirect"),
+        oldUrl: z.string().optional().describe("Source URL path to redirect from (without leading slash, e.g. 'old-page')"),
+        newUrl: z.string().optional().describe("Target URL to redirect to (e.g. '/new-page' or full URL)"),
+        statusCode: z.number().optional().describe("HTTP redirect code: 301=permanent, 302=temporary, 307=temporary-preserve-method (default: 301)"),
+        active: z.boolean().optional().describe("true = redirect is active, false = disabled (default: true)"),
+        note: z.string().optional().describe("Internal admin note about why this redirect exists"),
       },
       annotations: {
         readOnlyHint: false,
@@ -139,7 +139,7 @@ export function registerRedirectsTools(server: McpServer, client: NksWebClient):
     "nksweb_delete_redirect",
     {
       title: "Delete Redirect",
-      description: "Permanently delete a URL redirect by ID",
+      description: "Delete a redirect rule. The old URL will return 404 after deletion.",
       inputSchema: {
         id: z.number().describe("Redirect ID to delete"),
       },

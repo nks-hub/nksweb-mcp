@@ -7,7 +7,7 @@ export function registerFilesTools(server: McpServer, client: NksWebClient): voi
     "nksweb_list_files",
     {
       title: "List Files",
-      description: "List all uploaded files",
+      description: "List all uploaded files/media assets. Returns id, name, fileName (stored name), mimeType, fileSize, and timestamps. Files are images, documents, or other media uploaded through the CMS admin.",
       inputSchema: {},
       annotations: {
         readOnlyHint: true,
@@ -36,7 +36,7 @@ export function registerFilesTools(server: McpServer, client: NksWebClient): voi
     "nksweb_get_file",
     {
       title: "Get File",
-      description: "Get details of a specific file by ID",
+      description: "Get file metadata by ID including original name, stored filename, MIME type, file size in bytes, and upload timestamp.",
       inputSchema: {
         id: z.number().describe("File ID"),
       },
@@ -67,9 +67,9 @@ export function registerFilesTools(server: McpServer, client: NksWebClient): voi
     "nksweb_delete_file",
     {
       title: "Delete File",
-      description: "Permanently delete a file by ID",
+      description: "Permanently delete a file and its physical storage. This removes the file from disk — any pages or articles referencing it will have broken links. Cannot be undone.",
       inputSchema: {
-        id: z.number().describe("File ID to delete"),
+        id: z.number().describe("File ID"),
       },
       annotations: {
         readOnlyHint: false,

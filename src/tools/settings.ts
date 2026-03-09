@@ -7,7 +7,7 @@ export function registerSettingsTools(server: McpServer, client: NksWebClient): 
     "nksweb_list_settings",
     {
       title: "List Settings",
-      description: "List all application settings",
+      description: "List all tenant settings as key-value pairs. Returns configuration like site name, contact info, social links, analytics IDs, theme settings, and feature flags. Settings control the tenant's appearance and behavior.",
       inputSchema: {},
       annotations: {
         readOnlyHint: true,
@@ -36,9 +36,9 @@ export function registerSettingsTools(server: McpServer, client: NksWebClient): 
     "nksweb_get_setting",
     {
       title: "Get Setting",
-      description: "Get a single application setting by key",
+      description: "Get a specific setting value by its key. Common keys include: site_name, site_description, contact_email, contact_phone, address_*, rybbit_enabled, rybbit_site_id, social media URLs.",
       inputSchema: {
-        key: z.string().describe("Setting key"),
+        key: z.string().describe("Setting key name (e.g. 'site_name', 'contact_email', 'rybbit_enabled')"),
       },
       annotations: {
         readOnlyHint: true,
@@ -67,9 +67,9 @@ export function registerSettingsTools(server: McpServer, client: NksWebClient): 
     "nksweb_update_settings",
     {
       title: "Update Settings",
-      description: "Update one or more application settings in a single request",
+      description: "Update one or more settings at once. Pass a JSON object with key-value pairs. Only specified keys are updated — others remain unchanged. Use to configure site metadata, contact info, or feature flags.",
       inputSchema: {
-        settings: z.record(z.string(), z.string()).describe("Key-value map of settings to update"),
+        settings: z.record(z.string(), z.string()).describe("Object with setting keys and their new values, e.g. {\"site_name\": \"My Site\", \"contact_email\": \"info@example.com\"}"),
       },
       annotations: {
         readOnlyHint: false,

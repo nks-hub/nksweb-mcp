@@ -7,10 +7,10 @@ export function registerAnalyticsTools(server: McpServer, client: NksWebClient):
     "nksweb_analytics_overview",
     {
       title: "Analytics Overview",
-      description: "Get aggregated analytics overview (visits, pageviews, unique visitors, etc.) with optional date range filter",
+      description: "Get aggregated traffic analytics for the current tenant. Returns sessions count, pageviews, unique users, pages per session, bounce rate (%), and average session duration (seconds). Data comes from Rybbit Analytics. Defaults to last 30 days if no date range specified.",
       inputSchema: {
-        startDate: z.string().optional().describe("Start date for the analytics range (e.g. 2024-01-01)"),
-        endDate: z.string().optional().describe("End date for the analytics range (e.g. 2024-01-31)"),
+        startDate: z.string().optional().describe("Start date in YYYY-MM-DD format (default: 30 days ago)"),
+        endDate: z.string().optional().describe("End date in YYYY-MM-DD format (default: today)"),
       },
       annotations: {
         readOnlyHint: true,
@@ -42,11 +42,11 @@ export function registerAnalyticsTools(server: McpServer, client: NksWebClient):
     "nksweb_analytics_pages",
     {
       title: "Analytics Pages",
-      description: "Get top pages by visit count with optional date range and result limit",
+      description: "Get the most visited pages ranked by visit count. Returns page path, hostname, visit count, pageview count, percentage of total traffic, average time on page, and bounce rate per page. Use to understand which content gets the most traffic.",
       inputSchema: {
-        startDate: z.string().optional().describe("Start date for the analytics range (e.g. 2024-01-01)"),
-        endDate: z.string().optional().describe("End date for the analytics range (e.g. 2024-01-31)"),
-        limit: z.number().min(1).max(100).optional().default(10).describe("Maximum number of results to return (1-100, default: 10)"),
+        startDate: z.string().optional().describe("Start date in YYYY-MM-DD format (default: 30 days ago)"),
+        endDate: z.string().optional().describe("End date in YYYY-MM-DD format (default: today)"),
+        limit: z.number().min(1).max(100).optional().default(10).describe("Maximum number of results to return, 1-100 (default: 10)"),
       },
       annotations: {
         readOnlyHint: true,
@@ -79,11 +79,11 @@ export function registerAnalyticsTools(server: McpServer, client: NksWebClient):
     "nksweb_analytics_referrers",
     {
       title: "Analytics Referrers",
-      description: "Get top referrer sources by visit count with optional date range and result limit",
+      description: "Get top traffic referrer sources ranked by visitor count. Returns referrer domain/URL, visit count, and percentage. Use to understand where visitors come from (search engines, social media, other sites).",
       inputSchema: {
-        startDate: z.string().optional().describe("Start date for the analytics range (e.g. 2024-01-01)"),
-        endDate: z.string().optional().describe("End date for the analytics range (e.g. 2024-01-31)"),
-        limit: z.number().min(1).max(100).optional().default(10).describe("Maximum number of results to return (1-100, default: 10)"),
+        startDate: z.string().optional().describe("Start date in YYYY-MM-DD format (default: 30 days ago)"),
+        endDate: z.string().optional().describe("End date in YYYY-MM-DD format (default: today)"),
+        limit: z.number().min(1).max(100).optional().default(10).describe("Maximum number of results to return, 1-100 (default: 10)"),
       },
       annotations: {
         readOnlyHint: true,
