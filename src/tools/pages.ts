@@ -50,8 +50,17 @@ export function registerPagesTools(
     "nksweb_list_pages",
     {
       title: "List Pages",
-      description: "List all CMS pages for the current tenant. Returns id, name, url, content, type (default/homepage/contact/gallery/pricing/team/faq/news/articles/video_gallery/product/features/templates/demo/nks-pricing), status (0=disabled, 1=active), SEO fields, and navigation flags (showInMenu, showInNavbar, showInFooter). Use this to discover existing site pages before creating or updating.",
-      inputSchema: {},
+      description: "List CMS pages for the current tenant. Supports filtering by type, status, search term (matches name, url, content), and language. Returns id, name, url, content, type, status, SEO fields, and navigation flags.",
+      inputSchema: {
+        type: z.enum([
+          "default", "homepage", "contact", "gallery", "pricing", "team",
+          "faq", "news", "articles", "video_gallery", "product", "features",
+          "templates", "demo", "nks-pricing",
+        ]).optional().describe("Filter by page type"),
+        status: z.union([z.literal(0), z.literal(1)]).optional().describe("Filter by status: 0=disabled, 1=active"),
+        search: z.string().optional().describe("Search in page name, URL slug, and HTML content"),
+        lang: z.string().optional().describe("Filter by language code (e.g. 'cs', 'en')"),
+      },
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
@@ -59,9 +68,14 @@ export function registerPagesTools(
         openWorldHint: false,
       },
     },
-    async () => {
+    async (args) => {
       try {
-        const data = await client.get<Page[]>("/pages");
+        const params: Record<string, string> = {};
+        if (args.type) params.type = args.type;
+        if (args.status !== undefined) params.status = String(args.status);
+        if (args.search) params.search = args.search;
+        if (args.lang) params.lang = args.lang;
+        const data = await client.get<Page[]>("/pages", params);
         return {
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };
