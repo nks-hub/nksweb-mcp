@@ -298,6 +298,96 @@ nksweb-mcp/
 
 ---
 
+## Examples
+
+### Content Management
+
+```
+User: "List all active pages"
+→ nksweb_list_pages { status: 1 }
+
+User: "Find pages containing 'pricing'"
+→ nksweb_list_pages { search: "pricing" }
+
+User: "Show me the homepage"
+→ nksweb_list_pages { type: "homepage" }
+
+User: "Create a new FAQ page"
+→ nksweb_create_page { name: "FAQ", url: "faq", type: "faq", status: 1,
+    content: "<h1>Frequently Asked Questions</h1>" }
+
+User: "Update the hero heading on homepage"
+→ nksweb_upsert_content_block { pageId: 14, key: "hero_heading",
+    content: "Digital Solutions That Work", label: "Hero Heading" }
+```
+
+### Analytics
+
+```
+User: "How's the site traffic this month?"
+→ nksweb_analytics_overview { startDate: "2026-03-01" }
+
+User: "What browsers do our visitors use?"
+→ nksweb_analytics_metric { metric: "browser", limit: 10 }
+
+User: "Show country breakdown for last week"
+→ nksweb_analytics_metric { metric: "country",
+    startDate: "2026-03-02", endDate: "2026-03-09" }
+
+User: "Top 5 most visited pages"
+→ nksweb_analytics_pages { limit: 5 }
+
+User: "Where does our traffic come from?"
+→ nksweb_analytics_referrers {}
+```
+
+### Multi-Tenant
+
+```
+User: "What tenants are available?"
+→ nksweb_list_tenants {}
+
+User: "Switch to the acme tenant"
+→ nksweb_set_tenant { slug: "acme" }
+
+User: "Now list their pages"
+→ nksweb_list_pages {}  (automatically targets acme)
+
+User: "Go back to default"
+→ nksweb_set_tenant { slug: "" }
+```
+
+### Articles & News
+
+```
+User: "Create an article about our new feature"
+→ nksweb_create_article { title: "Introducing Smart Search",
+    url: "introducing-smart-search", status: 1,
+    content: "<p>We're excited to announce...</p>" }
+
+User: "List all news items"
+→ nksweb_list_news {}
+
+User: "Delete news item #5"
+→ nksweb_delete_news { id: 5 }
+```
+
+### Settings & Redirects
+
+```
+User: "What settings does this tenant have?"
+→ nksweb_list_settings {}
+
+User: "Add a redirect from /old-page to /new-page"
+→ nksweb_create_redirect { source: "/old-page", target: "/new-page",
+    statusCode: 301, isActive: true }
+
+User: "Show all contact form messages"
+→ nksweb_list_messages {}
+```
+
+---
+
 ## Development
 
 ```bash
