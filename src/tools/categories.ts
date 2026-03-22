@@ -18,8 +18,11 @@ export function registerCategoriesTools(
     "nksweb_list_categories",
     {
       title: "List Categories",
-      description: "List all article categories. Categories use a nested tree structure — root categories have parent=null, subcategories reference their parent's ID. Use to discover category hierarchy before assigning articles.",
-      inputSchema: {},
+      description: "List article categories. Categories use a nested tree structure — root categories have parent=null, subcategories reference their parent's ID. Use to discover category hierarchy before assigning articles.",
+      inputSchema: {
+        page: z.number().optional().default(1).describe("Page number (default: 1)"),
+        limit: z.number().optional().default(50).describe("Items per page (default: 50)"),
+      },
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
@@ -27,9 +30,9 @@ export function registerCategoriesTools(
         openWorldHint: false,
       },
     },
-    async () => {
+    async (args) => {
       try {
-        const data = await client.get<Category[]>("/categories");
+        const data = await client.get<Category[]>("/categories", { page: args.page, limit: args.limit });
         return {
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };

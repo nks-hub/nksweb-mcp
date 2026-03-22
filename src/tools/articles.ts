@@ -24,8 +24,11 @@ export function registerArticlesTools(
     "nksweb_list_articles",
     {
       title: "List Articles",
-      description: "List all blog/news articles for the current tenant. Returns id, name, url, descriptionShort, status, lang, categoryIds, and timestamps. Use this to see existing content before creating new articles.",
-      inputSchema: {},
+      description: "List blog/news articles for the current tenant. Returns id, name, url, descriptionShort, status, lang, categoryIds, and timestamps. Use this to see existing content before creating new articles.",
+      inputSchema: {
+        page: z.number().optional().default(1).describe("Page number (default: 1)"),
+        limit: z.number().optional().default(50).describe("Items per page (default: 50)"),
+      },
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
@@ -33,9 +36,9 @@ export function registerArticlesTools(
         openWorldHint: false,
       },
     },
-    async () => {
+    async (args) => {
       try {
-        const data = await client.get<Article[]>("/articles");
+        const data = await client.get<Article[]>("/articles", { page: args.page, limit: args.limit });
         return {
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };

@@ -7,8 +7,11 @@ export function registerNewsTools(server: McpServer, client: NksWebClient): void
     "nksweb_list_news",
     {
       title: "List News",
-      description: "List all news/announcement items for the current tenant. Returns id, name, url, published status, and timestamps. News items are time-based content like announcements, updates, or press releases.",
-      inputSchema: {},
+      description: "List news/announcement items for the current tenant. Returns id, name, url, published status, and timestamps. News items are time-based content like announcements, updates, or press releases.",
+      inputSchema: {
+        page: z.number().optional().default(1).describe("Page number (default: 1)"),
+        limit: z.number().optional().default(50).describe("Items per page (default: 50)"),
+      },
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
@@ -16,9 +19,9 @@ export function registerNewsTools(server: McpServer, client: NksWebClient): void
         openWorldHint: false,
       },
     },
-    async () => {
+    async (args) => {
       try {
-        const data = await client.get("/news");
+        const data = await client.get("/news", { page: args.page, limit: args.limit });
         return {
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };

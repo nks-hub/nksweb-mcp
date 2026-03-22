@@ -7,8 +7,11 @@ export function registerUsersTools(server: McpServer, client: NksWebClient): voi
     "nksweb_list_users",
     {
       title: "List Users",
-      description: "List all admin users for the current tenant. Returns id, name, username, and role. Sensitive fields (password, tokens) are excluded from the response.",
-      inputSchema: {},
+      description: "List admin users for the current tenant. Returns id, name, username, and role. Sensitive fields (password, tokens) are excluded from the response.",
+      inputSchema: {
+        page: z.number().optional().default(1).describe("Page number (default: 1)"),
+        limit: z.number().optional().default(50).describe("Items per page (default: 50)"),
+      },
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
@@ -16,9 +19,9 @@ export function registerUsersTools(server: McpServer, client: NksWebClient): voi
         openWorldHint: false,
       },
     },
-    async () => {
+    async (args) => {
       try {
-        const data = await client.get("/users");
+        const data = await client.get("/users", { page: args.page, limit: args.limit });
         return {
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };

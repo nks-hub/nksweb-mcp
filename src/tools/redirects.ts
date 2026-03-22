@@ -7,8 +7,11 @@ export function registerRedirectsTools(server: McpServer, client: NksWebClient):
     "nksweb_list_redirects",
     {
       title: "List Redirects",
-      description: "List all URL redirect rules for the current tenant. Returns oldUrl, newUrl, statusCode, active flag, hitCount, and timestamps. Redirects handle moved/renamed pages to prevent broken links and preserve SEO.",
-      inputSchema: {},
+      description: "List URL redirect rules for the current tenant. Returns oldUrl, newUrl, statusCode, active flag, hitCount, and timestamps. Redirects handle moved/renamed pages to prevent broken links and preserve SEO.",
+      inputSchema: {
+        page: z.number().optional().default(1).describe("Page number (default: 1)"),
+        limit: z.number().optional().default(50).describe("Items per page (default: 50)"),
+      },
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
@@ -16,9 +19,9 @@ export function registerRedirectsTools(server: McpServer, client: NksWebClient):
         openWorldHint: false,
       },
     },
-    async () => {
+    async (args) => {
       try {
-        const data = await client.get("/redirects");
+        const data = await client.get("/redirects", { page: args.page, limit: args.limit });
         return {
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };

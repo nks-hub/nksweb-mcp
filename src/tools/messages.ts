@@ -7,8 +7,11 @@ export function registerMessagesTools(server: McpServer, client: NksWebClient): 
     "nksweb_list_messages",
     {
       title: "List Messages",
-      description: "List all contact form submissions received from website visitors. Returns id, name, email, phone, subject, message body, isRead flag, and timestamps. Messages are sorted newest first. Use to monitor incoming inquiries.",
-      inputSchema: {},
+      description: "List contact form submissions received from website visitors. Returns id, name, email, phone, subject, message body, isRead flag, and timestamps. Messages are sorted newest first. Use to monitor incoming inquiries.",
+      inputSchema: {
+        page: z.number().optional().default(1).describe("Page number (default: 1)"),
+        limit: z.number().optional().default(50).describe("Items per page (default: 50)"),
+      },
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
@@ -16,9 +19,9 @@ export function registerMessagesTools(server: McpServer, client: NksWebClient): 
         openWorldHint: false,
       },
     },
-    async () => {
+    async (args) => {
       try {
-        const data = await client.get("/messages");
+        const data = await client.get("/messages", { page: args.page, limit: args.limit });
         return {
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };

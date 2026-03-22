@@ -1,7 +1,11 @@
 #!/usr/bin/env node
 
+import { createRequire } from "node:module";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+
+const require = createRequire(import.meta.url);
+const pkg = require("../package.json") as { version: string };
 import { NksWebClient, NksWebConfig } from "./client.js";
 import { registerPagesTools } from "./tools/pages.js";
 import { registerArticlesTools } from "./tools/articles.js";
@@ -40,7 +44,7 @@ async function main() {
   const server = new McpServer(
     {
       name: "nksweb-mcp",
-      version: "0.1.0",
+      version: pkg.version,
     },
     {
       instructions:

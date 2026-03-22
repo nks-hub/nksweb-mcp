@@ -7,8 +7,11 @@ export function registerFilesTools(server: McpServer, client: NksWebClient): voi
     "nksweb_list_files",
     {
       title: "List Files",
-      description: "List all uploaded files/media assets. Returns id, name, fileName (stored name), mimeType, fileSize, and timestamps. Files are images, documents, or other media uploaded through the CMS admin.",
-      inputSchema: {},
+      description: "List uploaded files/media assets. Returns id, name, fileName (stored name), mimeType, fileSize, and timestamps. Files are images, documents, or other media uploaded through the CMS admin.",
+      inputSchema: {
+        page: z.number().optional().default(1).describe("Page number (default: 1)"),
+        limit: z.number().optional().default(50).describe("Items per page (default: 50)"),
+      },
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
@@ -16,9 +19,9 @@ export function registerFilesTools(server: McpServer, client: NksWebClient): voi
         openWorldHint: false,
       },
     },
-    async () => {
+    async (args) => {
       try {
-        const data = await client.get("/files");
+        const data = await client.get("/files", { page: args.page, limit: args.limit });
         return {
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };
