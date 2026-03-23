@@ -28,16 +28,10 @@ Místo přepínání mezi admin panely nechte AI asistenta spravovat CMS obsah p
 
 ### Instalace
 
-```bash
-npm install -g @nks-hub/nksweb-mcp
-```
-
-Nebo klonováním a buildem:
+Žádná instalace není potřeba — stačí `npx`:
 
 ```bash
-git clone https://github.com/nks-hub/nksweb-mcp.git
-cd nksweb-mcp
-npm install && npm run build
+npx -y @nks-hub/nksweb-mcp
 ```
 
 ### Konfigurace
@@ -48,11 +42,11 @@ Přidejte do `~/.claude/.mcp.json` nebo projektové MCP konfigurace:
 {
   "mcpServers": {
     "nksweb": {
-      "command": "node",
-      "args": ["/cesta/k/nksweb-mcp/build/index.js"],
+      "command": "npx",
+      "args": ["-y", "@nks-hub/nksweb-mcp"],
       "env": {
-        "NKSWEB_URL": "https://vas-web.cz",
-        "NKSWEB_API_KEY": "nks_vas_api_klic"
+        "NKSWEB_URL": "https://your-site.com",
+        "NKSWEB_API_KEY": "nks_your_api_key"
       }
     }
   }
@@ -62,7 +56,7 @@ Přidejte do `~/.claude/.mcp.json` nebo projektové MCP konfigurace:
 Nebo přes Claude Code CLI:
 
 ```bash
-claude mcp add nksweb -e NKSWEB_URL=https://vas-web.cz -e NKSWEB_API_KEY=nks_vas_klic -- npx @nks-hub/nksweb-mcp
+claude mcp add nksweb -e NKSWEB_URL=https://your-site.com -e NKSWEB_API_KEY=nks_key -- npx -y @nks-hub/nksweb-mcp
 ```
 
 ### Použití
@@ -90,7 +84,7 @@ Zeptejte se Claude Code na cokoliv ohledně vašeho CMS obsahu. Všechny nástro
 
 | Proměnná | Povinná | Popis |
 |----------|---------|-------|
-| `NKSWEB_URL` | Ano | Základní URL instance NKS-Web (např. `https://vas-web.cz`) |
+| `NKSWEB_URL` | Ano | Základní URL instance NKS-Web (např. `https://your-site.com`) |
 | `NKSWEB_API_KEY` | Ano | API klíč s příslušnými oprávněními (prefix `nks_`) |
 
 ---
@@ -390,9 +384,12 @@ Uživatel: "Ukaž všechny zprávy z kontaktního formuláře"
 
 ---
 
-## Vývoj
+## Vývoj (ze zdrojového kódu)
 
 ```bash
+git clone https://github.com/nks-hub/nksweb-mcp.git
+cd nksweb-mcp
+
 # Instalace závislostí
 npm install
 
