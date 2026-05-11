@@ -42,6 +42,48 @@ const pageTypeSchema = z.enum([
   "nks-pricing",
 ]);
 
+// Output schemas — describe the response shape so Apps SDK / clients can validate.
+const pageOutput = {
+  id: z.number(),
+  name: z.string(),
+  url: z.string(),
+  content: z.string().optional(),
+  type: z.string().optional(),
+  status: z.number().optional(),
+  metaTitle: z.string().optional(),
+  metaDescription: z.string().optional(),
+  position: z.number().optional(),
+  showInMenu: z.boolean().optional(),
+  showInNavbar: z.boolean().optional(),
+  showInFooter: z.boolean().optional(),
+  lang: z.string().optional(),
+};
+
+const pageListOutput = {
+  items: z.array(z.object(pageOutput).passthrough()).describe("Pages matching the query"),
+};
+
+const pageEnvelopeOutput = {
+  status: z.string().optional(),
+  data: z.object(pageOutput).passthrough().optional(),
+};
+
+const contentBlockOutput = {
+  key: z.string(),
+  label: z.string(),
+  content: z.string(),
+};
+
+const contentBlockListOutput = {
+  items: z.array(z.object(contentBlockOutput)).describe("Content blocks on the page"),
+};
+
+const deleteResultOutput = {
+  deleted: z.boolean().optional(),
+  status: z.string().optional(),
+  message: z.string().optional(),
+};
+
 export function registerPagesTools(
   server: McpServer,
   client: NksWebClient
@@ -61,11 +103,16 @@ export function registerPagesTools(
         search: z.string().optional().describe("Search in page name, URL slug, and HTML content"),
         lang: z.string().optional().describe("Filter by language code (e.g. 'cs', 'en')"),
       },
+      outputSchema: pageListOutput,
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
         idempotentHint: true,
         openWorldHint: false,
+      },
+      _meta: {
+        "openai/toolInvocation/invoking": "Listing pages",
+        "openai/toolInvocation/invoked": "Pages listed",
       },
     },
     async (args) => {
@@ -76,7 +123,9 @@ export function registerPagesTools(
         if (args.search) params.search = args.search;
         if (args.lang) params.lang = args.lang;
         const data = await client.get<Page[]>("/pages", params);
+        const structured = { items: Array.isArray(data) ? data : [] };
         return {
+          structuredContent: structured as unknown as Record<string, unknown>,
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };
       } catch (err) {
@@ -97,17 +146,23 @@ export function registerPagesTools(
       inputSchema: {
         id: z.number().describe("Page ID"),
       },
+      outputSchema: pageOutput,
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
         idempotentHint: true,
         openWorldHint: false,
       },
+      _meta: {
+        "openai/toolInvocation/invoking": "Loading page",
+        "openai/toolInvocation/invoked": "Page loaded",
+      },
     },
     async (args) => {
       try {
         const data = await client.get<Page>(`/pages/${args.id}`);
         return {
+          structuredContent: data as unknown as Record<string, unknown>,
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };
       } catch (err) {
@@ -140,17 +195,23 @@ export function registerPagesTools(
         showInFooter: z.boolean().optional().describe("Show this page in the footer navigation"),
         lang: z.string().optional().describe("Language code ISO 639-1 (e.g. 'cs', 'en')"),
       },
+      outputSchema: pageOutput,
       annotations: {
         readOnlyHint: false,
         destructiveHint: false,
         idempotentHint: false,
         openWorldHint: false,
       },
+      _meta: {
+        "openai/toolInvocation/invoking": "Creating page",
+        "openai/toolInvocation/invoked": "Page created",
+      },
     },
     async (args) => {
       try {
         const data = await client.post<Page>("/pages", args);
         return {
+          structuredContent: data as unknown as Record<string, unknown>,
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };
       } catch (err) {
@@ -184,11 +245,16 @@ export function registerPagesTools(
         showInFooter: z.boolean().optional().describe("Show this page in the footer navigation"),
         lang: z.string().optional().describe("Language code ISO 639-1 (e.g. 'cs', 'en')"),
       },
+      outputSchema: pageOutput,
       annotations: {
         readOnlyHint: false,
         destructiveHint: false,
         idempotentHint: true,
         openWorldHint: false,
+      },
+      _meta: {
+        "openai/toolInvocation/invoking": "Updating page",
+        "openai/toolInvocation/invoked": "Page updated",
       },
     },
     async (args) => {
@@ -196,6 +262,7 @@ export function registerPagesTools(
         const { id, ...body } = args;
         const data = await client.put<Page>(`/pages/${id}`, body);
         return {
+          structuredContent: data as unknown as Record<string, unknown>,
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };
       } catch (err) {
@@ -219,11 +286,16 @@ export function registerPagesTools(
       inputSchema: {
         pageId: z.number().describe("Page ID"),
       },
+      outputSchema: contentBlockListOutput,
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
         idempotentHint: true,
         openWorldHint: false,
+      },
+      _meta: {
+        "openai/toolInvocation/invoking": "Listing content blocks",
+        "openai/toolInvocation/invoked": "Content blocks listed",
       },
     },
     async (args) => {
@@ -246,7 +318,9 @@ export function registerPagesTools(
                 ? block
                 : "",
         }));
+        const structured = { items: result };
         return {
+          structuredContent: structured as unknown as Record<string, unknown>,
           content: [{ type: "text" as const, text: truncateResponse(result) }],
         };
       } catch (err) {
@@ -282,11 +356,16 @@ export function registerPagesTools(
             "Human-readable label shown in admin (e.g. 'Nadpis hero sekce')"
           ),
       },
+      outputSchema: pageOutput,
       annotations: {
         readOnlyHint: false,
         destructiveHint: false,
         idempotentHint: true,
         openWorldHint: false,
+      },
+      _meta: {
+        "openai/toolInvocation/invoking": "Saving content block",
+        "openai/toolInvocation/invoked": "Content block saved",
       },
     },
     async (args) => {
@@ -308,6 +387,7 @@ export function registerPagesTools(
           extraData,
         });
         return {
+          structuredContent: data as unknown as Record<string, unknown>,
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };
       } catch (err) {
@@ -332,11 +412,16 @@ export function registerPagesTools(
           .string()
           .describe("Block key to delete (e.g. 'hero_heading')"),
       },
+      outputSchema: pageOutput,
       annotations: {
         readOnlyHint: false,
         destructiveHint: true,
         idempotentHint: true,
         openWorldHint: false,
+      },
+      _meta: {
+        "openai/toolInvocation/invoking": "Deleting content block",
+        "openai/toolInvocation/invoked": "Content block deleted",
       },
     },
     async (args) => {
@@ -366,6 +451,7 @@ export function registerPagesTools(
           extraData,
         });
         return {
+          structuredContent: data as unknown as Record<string, unknown>,
           content: [
             {
               type: "text" as const,
@@ -391,17 +477,23 @@ export function registerPagesTools(
       inputSchema: {
         id: z.number().describe("Page ID"),
       },
+      outputSchema: deleteResultOutput,
       annotations: {
         readOnlyHint: false,
         destructiveHint: true,
         idempotentHint: false,
         openWorldHint: false,
       },
+      _meta: {
+        "openai/toolInvocation/invoking": "Deleting page",
+        "openai/toolInvocation/invoked": "Page deleted",
+      },
     },
     async (args) => {
       try {
         const data = await client.delete<unknown>(`/pages/${args.id}`);
         return {
+          structuredContent: (data && typeof data === "object" ? data : { deleted: true }) as Record<string, unknown>,
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };
       } catch (err) {

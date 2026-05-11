@@ -2,6 +2,37 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { NksWebClient, truncateResponse } from "../client.js";
 
+interface Redirect {
+  id: number;
+  oldUrl: string;
+  newUrl: string;
+  statusCode?: number;
+  active?: boolean;
+  hitCount?: number;
+  note?: string;
+  [key: string]: unknown;
+}
+
+const redirectOutput = {
+  id: z.number(),
+  oldUrl: z.string(),
+  newUrl: z.string(),
+  statusCode: z.number().optional(),
+  active: z.boolean().optional(),
+  hitCount: z.number().optional(),
+  note: z.string().optional(),
+};
+
+const redirectListOutput = {
+  items: z.array(z.object(redirectOutput).passthrough()).describe("Redirects matching the query"),
+};
+
+const deleteResultOutput = {
+  deleted: z.boolean().optional(),
+  status: z.string().optional(),
+  message: z.string().optional(),
+};
+
 export function registerRedirectsTools(server: McpServer, client: NksWebClient): void {
   server.registerTool(
     "nksweb_list_redirects",
@@ -12,17 +43,24 @@ export function registerRedirectsTools(server: McpServer, client: NksWebClient):
         page: z.number().optional().default(1).describe("Page number (default: 1)"),
         limit: z.number().optional().default(50).describe("Items per page (default: 50)"),
       },
+      outputSchema: redirectListOutput,
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
         idempotentHint: true,
         openWorldHint: false,
       },
+      _meta: {
+        "openai/toolInvocation/invoking": "Listing redirects",
+        "openai/toolInvocation/invoked": "Redirects listed",
+      },
     },
     async (args) => {
       try {
-        const data = await client.get("/redirects", { page: args.page, limit: args.limit });
+        const data = await client.get<Redirect[]>("/redirects", { page: args.page, limit: args.limit });
+        const structured = { items: Array.isArray(data) ? data : [] };
         return {
+          structuredContent: structured as unknown as Record<string, unknown>,
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };
       } catch (err) {
@@ -43,17 +81,23 @@ export function registerRedirectsTools(server: McpServer, client: NksWebClient):
       inputSchema: {
         id: z.number().describe("Redirect ID"),
       },
+      outputSchema: redirectOutput,
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
         idempotentHint: true,
         openWorldHint: false,
       },
+      _meta: {
+        "openai/toolInvocation/invoking": "Loading redirect",
+        "openai/toolInvocation/invoked": "Redirect loaded",
+      },
     },
     async (args) => {
       try {
-        const data = await client.get(`/redirects/${args.id}`);
+        const data = await client.get<Redirect>(`/redirects/${args.id}`);
         return {
+          structuredContent: data as unknown as Record<string, unknown>,
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };
       } catch (err) {
@@ -78,17 +122,23 @@ export function registerRedirectsTools(server: McpServer, client: NksWebClient):
         active: z.boolean().optional().default(true).describe("true = redirect is active, false = disabled (default: true)"),
         note: z.string().optional().describe("Internal admin note about why this redirect exists"),
       },
+      outputSchema: redirectOutput,
       annotations: {
         readOnlyHint: false,
         destructiveHint: false,
         idempotentHint: false,
         openWorldHint: false,
       },
+      _meta: {
+        "openai/toolInvocation/invoking": "Creating redirect",
+        "openai/toolInvocation/invoked": "Redirect created",
+      },
     },
     async (args) => {
       try {
-        const data = await client.post("/redirects", args);
+        const data = await client.post<Redirect>("/redirects", args);
         return {
+          structuredContent: data as unknown as Record<string, unknown>,
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };
       } catch (err) {
@@ -114,18 +164,24 @@ export function registerRedirectsTools(server: McpServer, client: NksWebClient):
         active: z.boolean().optional().describe("true = redirect is active, false = disabled (default: true)"),
         note: z.string().optional().describe("Internal admin note about why this redirect exists"),
       },
+      outputSchema: redirectOutput,
       annotations: {
         readOnlyHint: false,
         destructiveHint: false,
         idempotentHint: true,
         openWorldHint: false,
       },
+      _meta: {
+        "openai/toolInvocation/invoking": "Updating redirect",
+        "openai/toolInvocation/invoked": "Redirect updated",
+      },
     },
     async (args) => {
       try {
         const { id, ...body } = args;
-        const data = await client.put(`/redirects/${id}`, body);
+        const data = await client.put<Redirect>(`/redirects/${id}`, body);
         return {
+          structuredContent: data as unknown as Record<string, unknown>,
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };
       } catch (err) {
@@ -146,17 +202,23 @@ export function registerRedirectsTools(server: McpServer, client: NksWebClient):
       inputSchema: {
         id: z.number().describe("Redirect ID to delete"),
       },
+      outputSchema: deleteResultOutput,
       annotations: {
         readOnlyHint: false,
         destructiveHint: true,
         idempotentHint: false,
         openWorldHint: false,
       },
+      _meta: {
+        "openai/toolInvocation/invoking": "Deleting redirect",
+        "openai/toolInvocation/invoked": "Redirect deleted",
+      },
     },
     async (args) => {
       try {
-        const data = await client.delete(`/redirects/${args.id}`);
+        const data = await client.delete<unknown>(`/redirects/${args.id}`);
         return {
+          structuredContent: (data && typeof data === "object" ? data : { deleted: true }) as Record<string, unknown>,
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };
       } catch (err) {

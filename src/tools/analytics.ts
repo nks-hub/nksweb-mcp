@@ -11,12 +11,37 @@ const limitSchema = {
   limit: z.number().min(1).max(100).optional().describe("Max results 1-100 (default: 10)"),
 };
 
+const overviewOutput = {
+  sessions: z.number().optional(),
+  pageviews: z.number().optional(),
+  uniqueUsers: z.number().optional(),
+  pagesPerSession: z.number().optional(),
+  bounceRate: z.number().optional(),
+  avgSessionDuration: z.number().optional(),
+};
+
+const breakdownOutput = {
+  items: z
+    .array(z.record(z.unknown()))
+    .describe("Ranked breakdown rows (value, visits, percentage, etc.)"),
+};
+
 function buildDateParams(args: { startDate?: string; endDate?: string; limit?: number }): Record<string, string | number> {
   const params: Record<string, string | number> = {};
   if (args.startDate) params.startDate = args.startDate;
   if (args.endDate) params.endDate = args.endDate;
   if (args.limit !== undefined) params.limit = args.limit;
   return params;
+}
+
+function toBreakdownStructured(data: unknown): Record<string, unknown> {
+  if (Array.isArray(data)) return { items: data as unknown[] };
+  if (data && typeof data === "object") {
+    const obj = data as Record<string, unknown>;
+    if (Array.isArray(obj.items)) return { items: obj.items };
+    if (Array.isArray(obj.data)) return { items: obj.data as unknown[] };
+  }
+  return { items: [] };
 }
 
 export function registerAnalyticsTools(server: McpServer, client: NksWebClient): void {
@@ -29,17 +54,27 @@ export function registerAnalyticsTools(server: McpServer, client: NksWebClient):
         "pages/session, bounce rate (%), avg session duration (seconds). " +
         "Defaults to last 30 days.",
       inputSchema: { ...dateSchema },
+      outputSchema: overviewOutput,
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
         idempotentHint: true,
         openWorldHint: false,
       },
+      _meta: {
+        "openai/toolInvocation/invoking": "Loading analytics overview",
+        "openai/toolInvocation/invoked": "Analytics overview ready",
+      },
     },
     async (args) => {
       try {
-        const data = await client.get("/analytics/overview", buildDateParams(args));
+        const data = await client.get<unknown>("/analytics/overview", buildDateParams(args));
+        const structured =
+          data && typeof data === "object" && !Array.isArray(data)
+            ? (data as Record<string, unknown>)
+            : { value: data };
         return {
+          structuredContent: structured as unknown as Record<string, unknown>,
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };
       } catch (err) {
@@ -59,17 +94,23 @@ export function registerAnalyticsTools(server: McpServer, client: NksWebClient):
         "Top visited pages ranked by visit count. Returns page path, " +
         "visit count, pageviews, traffic percentage, avg time on page, bounce rate.",
       inputSchema: { ...dateSchema, ...limitSchema },
+      outputSchema: breakdownOutput,
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
         idempotentHint: true,
         openWorldHint: false,
       },
+      _meta: {
+        "openai/toolInvocation/invoking": "Loading top pages",
+        "openai/toolInvocation/invoked": "Top pages loaded",
+      },
     },
     async (args) => {
       try {
-        const data = await client.get("/analytics/pages", buildDateParams(args));
+        const data = await client.get<unknown>("/analytics/pages", buildDateParams(args));
         return {
+          structuredContent: toBreakdownStructured(data),
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };
       } catch (err) {
@@ -89,17 +130,23 @@ export function registerAnalyticsTools(server: McpServer, client: NksWebClient):
         "Top traffic sources ranked by visitor count. Shows referrer " +
         "domain/URL, visit count, and percentage of total traffic.",
       inputSchema: { ...dateSchema, ...limitSchema },
+      outputSchema: breakdownOutput,
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
         idempotentHint: true,
         openWorldHint: false,
       },
+      _meta: {
+        "openai/toolInvocation/invoking": "Loading top referrers",
+        "openai/toolInvocation/invoked": "Top referrers loaded",
+      },
     },
     async (args) => {
       try {
-        const data = await client.get("/analytics/referrers", buildDateParams(args));
+        const data = await client.get<unknown>("/analytics/referrers", buildDateParams(args));
         return {
+          structuredContent: toBreakdownStructured(data),
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };
       } catch (err) {
@@ -128,18 +175,24 @@ export function registerAnalyticsTools(server: McpServer, client: NksWebClient):
         ...dateSchema,
         ...limitSchema,
       },
+      outputSchema: breakdownOutput,
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
         idempotentHint: true,
         openWorldHint: false,
       },
+      _meta: {
+        "openai/toolInvocation/invoking": "Loading metric breakdown",
+        "openai/toolInvocation/invoked": "Metric breakdown loaded",
+      },
     },
     async (args) => {
       try {
         const params = buildDateParams(args);
-        const data = await client.get(`/analytics/metrics/${args.metric}`, params);
+        const data = await client.get<unknown>(`/analytics/metrics/${args.metric}`, params);
         return {
+          structuredContent: toBreakdownStructured(data),
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };
       } catch (err) {

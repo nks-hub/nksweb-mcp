@@ -16,6 +16,29 @@ interface Article {
   [key: string]: unknown;
 }
 
+const articleOutput = {
+  id: z.number(),
+  name: z.string(),
+  url: z.string(),
+  descriptionShort: z.string().optional(),
+  description: z.string().optional(),
+  status: z.number().optional(),
+  metaTitle: z.string().optional(),
+  metaDescription: z.string().optional(),
+  lang: z.string().optional(),
+  categoryIds: z.array(z.number()).optional(),
+};
+
+const articleListOutput = {
+  items: z.array(z.object(articleOutput).passthrough()).describe("Articles matching the query"),
+};
+
+const deleteResultOutput = {
+  deleted: z.boolean().optional(),
+  status: z.string().optional(),
+  message: z.string().optional(),
+};
+
 export function registerArticlesTools(
   server: McpServer,
   client: NksWebClient
@@ -29,17 +52,24 @@ export function registerArticlesTools(
         page: z.number().optional().default(1).describe("Page number (default: 1)"),
         limit: z.number().optional().default(50).describe("Items per page (default: 50)"),
       },
+      outputSchema: articleListOutput,
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
         idempotentHint: true,
         openWorldHint: false,
       },
+      _meta: {
+        "openai/toolInvocation/invoking": "Listing articles",
+        "openai/toolInvocation/invoked": "Articles listed",
+      },
     },
     async (args) => {
       try {
         const data = await client.get<Article[]>("/articles", { page: args.page, limit: args.limit });
+        const structured = { items: Array.isArray(data) ? data : [] };
         return {
+          structuredContent: structured as unknown as Record<string, unknown>,
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };
       } catch (err) {
@@ -60,17 +90,23 @@ export function registerArticlesTools(
       inputSchema: {
         id: z.number().describe("Article ID"),
       },
+      outputSchema: articleOutput,
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
         idempotentHint: true,
         openWorldHint: false,
       },
+      _meta: {
+        "openai/toolInvocation/invoking": "Loading article",
+        "openai/toolInvocation/invoked": "Article loaded",
+      },
     },
     async (args) => {
       try {
         const data = await client.get<Article>(`/articles/${args.id}`);
         return {
+          structuredContent: data as unknown as Record<string, unknown>,
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };
       } catch (err) {
@@ -99,17 +135,23 @@ export function registerArticlesTools(
         lang: z.string().optional().describe("Language code ISO 639-1 (e.g. 'cs', 'en')"),
         categoryIds: z.array(z.number()).optional().describe("Array of category IDs to assign this article to"),
       },
+      outputSchema: articleOutput,
       annotations: {
         readOnlyHint: false,
         destructiveHint: false,
         idempotentHint: false,
         openWorldHint: false,
       },
+      _meta: {
+        "openai/toolInvocation/invoking": "Creating article",
+        "openai/toolInvocation/invoked": "Article created",
+      },
     },
     async (args) => {
       try {
         const data = await client.post<Article>("/articles", args);
         return {
+          structuredContent: data as unknown as Record<string, unknown>,
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };
       } catch (err) {
@@ -139,11 +181,16 @@ export function registerArticlesTools(
         lang: z.string().optional().describe("Language code ISO 639-1 (e.g. 'cs', 'en')"),
         categoryIds: z.array(z.number()).optional().describe("Array of category IDs to assign this article to"),
       },
+      outputSchema: articleOutput,
       annotations: {
         readOnlyHint: false,
         destructiveHint: false,
         idempotentHint: true,
         openWorldHint: false,
+      },
+      _meta: {
+        "openai/toolInvocation/invoking": "Updating article",
+        "openai/toolInvocation/invoked": "Article updated",
       },
     },
     async (args) => {
@@ -151,6 +198,7 @@ export function registerArticlesTools(
         const { id, ...body } = args;
         const data = await client.put<Article>(`/articles/${id}`, body);
         return {
+          structuredContent: data as unknown as Record<string, unknown>,
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };
       } catch (err) {
@@ -171,17 +219,23 @@ export function registerArticlesTools(
       inputSchema: {
         id: z.number().describe("Article ID"),
       },
+      outputSchema: deleteResultOutput,
       annotations: {
         readOnlyHint: false,
         destructiveHint: true,
         idempotentHint: false,
         openWorldHint: false,
       },
+      _meta: {
+        "openai/toolInvocation/invoking": "Deleting article",
+        "openai/toolInvocation/invoked": "Article deleted",
+      },
     },
     async (args) => {
       try {
         const data = await client.delete<unknown>(`/articles/${args.id}`);
         return {
+          structuredContent: (data && typeof data === "object" ? data : { deleted: true }) as Record<string, unknown>,
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };
       } catch (err) {

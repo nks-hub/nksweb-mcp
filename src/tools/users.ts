@@ -2,6 +2,31 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { NksWebClient, truncateResponse } from "../client.js";
 
+interface User {
+  id: number;
+  username: string;
+  name?: string;
+  role?: number;
+  [key: string]: unknown;
+}
+
+const userOutput = {
+  id: z.number(),
+  username: z.string(),
+  name: z.string().optional(),
+  role: z.number().optional(),
+};
+
+const userListOutput = {
+  items: z.array(z.object(userOutput).passthrough()).describe("Admin users matching the query"),
+};
+
+const deleteResultOutput = {
+  deleted: z.boolean().optional(),
+  status: z.string().optional(),
+  message: z.string().optional(),
+};
+
 export function registerUsersTools(server: McpServer, client: NksWebClient): void {
   server.registerTool(
     "nksweb_list_users",
@@ -12,17 +37,24 @@ export function registerUsersTools(server: McpServer, client: NksWebClient): voi
         page: z.number().optional().default(1).describe("Page number (default: 1)"),
         limit: z.number().optional().default(50).describe("Items per page (default: 50)"),
       },
+      outputSchema: userListOutput,
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
         idempotentHint: true,
         openWorldHint: false,
       },
+      _meta: {
+        "openai/toolInvocation/invoking": "Listing users",
+        "openai/toolInvocation/invoked": "Users listed",
+      },
     },
     async (args) => {
       try {
-        const data = await client.get("/users", { page: args.page, limit: args.limit });
+        const data = await client.get<User[]>("/users", { page: args.page, limit: args.limit });
+        const structured = { items: Array.isArray(data) ? data : [] };
         return {
+          structuredContent: structured as unknown as Record<string, unknown>,
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };
       } catch (err) {
@@ -43,17 +75,23 @@ export function registerUsersTools(server: McpServer, client: NksWebClient): voi
       inputSchema: {
         id: z.number().describe("User ID"),
       },
+      outputSchema: userOutput,
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
         idempotentHint: true,
         openWorldHint: false,
       },
+      _meta: {
+        "openai/toolInvocation/invoking": "Loading user",
+        "openai/toolInvocation/invoked": "User loaded",
+      },
     },
     async (args) => {
       try {
-        const data = await client.get(`/users/${args.id}`);
+        const data = await client.get<User>(`/users/${args.id}`);
         return {
+          structuredContent: data as unknown as Record<string, unknown>,
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };
       } catch (err) {
@@ -77,17 +115,23 @@ export function registerUsersTools(server: McpServer, client: NksWebClient): voi
         name: z.string().optional().describe("Display name shown in the admin UI"),
         role: z.number().optional().describe("0 = Admin (full access), 1 = Moderator (limited access)"),
       },
+      outputSchema: userOutput,
       annotations: {
         readOnlyHint: false,
         destructiveHint: false,
         idempotentHint: false,
         openWorldHint: false,
       },
+      _meta: {
+        "openai/toolInvocation/invoking": "Creating user",
+        "openai/toolInvocation/invoked": "User created",
+      },
     },
     async (args) => {
       try {
-        const data = await client.post("/users", args);
+        const data = await client.post<User>("/users", args);
         return {
+          structuredContent: data as unknown as Record<string, unknown>,
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };
       } catch (err) {
@@ -112,18 +156,24 @@ export function registerUsersTools(server: McpServer, client: NksWebClient): voi
         name: z.string().optional().describe("Display name shown in the admin UI"),
         role: z.number().optional().describe("0 = Admin (full access), 1 = Moderator (limited access)"),
       },
+      outputSchema: userOutput,
       annotations: {
         readOnlyHint: false,
         destructiveHint: false,
         idempotentHint: true,
         openWorldHint: false,
       },
+      _meta: {
+        "openai/toolInvocation/invoking": "Updating user",
+        "openai/toolInvocation/invoked": "User updated",
+      },
     },
     async (args) => {
       try {
         const { id, ...body } = args;
-        const data = await client.put(`/users/${id}`, body);
+        const data = await client.put<User>(`/users/${id}`, body);
         return {
+          structuredContent: data as unknown as Record<string, unknown>,
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };
       } catch (err) {
@@ -144,17 +194,23 @@ export function registerUsersTools(server: McpServer, client: NksWebClient): voi
       inputSchema: {
         id: z.number().describe("User ID"),
       },
+      outputSchema: deleteResultOutput,
       annotations: {
         readOnlyHint: false,
         destructiveHint: true,
         idempotentHint: false,
         openWorldHint: false,
       },
+      _meta: {
+        "openai/toolInvocation/invoking": "Deleting user",
+        "openai/toolInvocation/invoked": "User deleted",
+      },
     },
     async (args) => {
       try {
-        const data = await client.delete(`/users/${args.id}`);
+        const data = await client.delete<unknown>(`/users/${args.id}`);
         return {
+          structuredContent: (data && typeof data === "object" ? data : { deleted: true }) as Record<string, unknown>,
           content: [{ type: "text" as const, text: truncateResponse(data) }],
         };
       } catch (err) {
