@@ -1,23 +1,28 @@
 #!/usr/bin/env node
+/**
+ * NKS-Web MCP — CLI entrypoint.
+ *
+ * Transports:
+ *   stdio (default) — for local Claude Desktop / Claude Code use
+ *   http            — Streamable HTTP for remote hosting (gateway / ChatGPT)
+ *
+ * Environment:
+ *   NKSWEB_URL         required, e.g. https://nks-web.cz
+ *   NKSWEB_API_KEY     required
+ *   MCP_TRANSPORT      stdio | http   (default: stdio)
+ *   MCP_HTTP_PORT      default: 3000  (only when MCP_TRANSPORT=http)
+ *   MCP_HTTP_HOST      default: 0.0.0.0
+ *   MCP_HTTP_PATH      default: /mcp
+ *   MCP_STATELESS      1 to disable session IDs (default: stateful)
+ */
 
-import { createRequire } from "node:module";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { randomUUID } from "node:crypto";
+import { createServer as createHttpServer, IncomingMessage, ServerResponse } from "node:http";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-
-const require = createRequire(import.meta.url);
-const pkg = require("../package.json") as { version: string };
-import { NksWebClient, NksWebConfig } from "./client.js";
-import { registerPagesTools } from "./tools/pages.js";
-import { registerArticlesTools } from "./tools/articles.js";
-import { registerCategoriesTools } from "./tools/categories.js";
-import { registerNewsTools } from "./tools/news.js";
-import { registerFilesTools } from "./tools/files.js";
-import { registerUsersTools } from "./tools/users.js";
-import { registerMessagesTools } from "./tools/messages.js";
-import { registerRedirectsTools } from "./tools/redirects.js";
-import { registerSettingsTools } from "./tools/settings.js";
-import { registerAnalyticsTools } from "./tools/analytics.js";
-import { registerTenantsTools } from "./tools/tenants.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { createNksWebServer, NKSWEB_SERVER_NAME } from "./server.js";
+import { NksWebConfig } from "./client.js";
 
 function getConfig(): NksWebConfig {
   const baseUrl = process.env.NKSWEB_URL;
@@ -35,44 +40,60 @@ function getConfig(): NksWebConfig {
   return { baseUrl: baseUrl.replace(/\/+$/, ""), apiKey };
 }
 
-async function main() {
-  const config = getConfig();
-  const client = new NksWebClient(config);
-
-  await client.detectTenantMode();
-
-  const server = new McpServer(
-    {
-      name: "nksweb-mcp",
-      version: pkg.version,
-    },
-    {
-      instructions:
-        "NKS-Web CMS MCP server for tenant management. " +
-        "Manage pages, articles, categories, news, files, users, messages, redirects, settings, and analytics. " +
-        "All write operations require appropriate API key scopes (e.g. pages:write, articles:write). " +
-        "Use list tools first to discover existing content, then get/create/update/delete as needed. " +
-        "Analytics tools accept startDate/endDate (YYYY-MM-DD format, defaults to last 30 days). " +
-        "Multi-tenant: Use nksweb_list_tenants to see available tenants, " +
-        "then nksweb_set_tenant to switch context. All subsequent operations will target that tenant.",
-    }
-  );
-
-  registerPagesTools(server, client);
-  registerArticlesTools(server, client);
-  registerCategoriesTools(server, client);
-  registerNewsTools(server, client);
-  registerFilesTools(server, client);
-  registerUsersTools(server, client);
-  registerMessagesTools(server, client);
-  registerRedirectsTools(server, client);
-  registerSettingsTools(server, client);
-  registerAnalyticsTools(server, client);
-  registerTenantsTools(server, client);
-
+async function runStdio(server: McpServer): Promise<void> {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("NKS-Web MCP server running on stdio");
+  console.error(`${NKSWEB_SERVER_NAME} running on stdio`);
+}
+
+async function runHttp(server: McpServer): Promise<void> {
+  const port = Number(process.env.MCP_HTTP_PORT ?? 3000);
+  const host = process.env.MCP_HTTP_HOST ?? "0.0.0.0";
+  const path = process.env.MCP_HTTP_PATH ?? "/mcp";
+  const stateless = process.env.MCP_STATELESS === "1";
+
+  const transport = new StreamableHTTPServerTransport({
+    sessionIdGenerator: stateless ? undefined : () => randomUUID(),
+  });
+  await server.connect(transport);
+
+  const httpServer = createHttpServer((req: IncomingMessage, res: ServerResponse) => {
+    if (req.url === "/healthz" || req.url === "/") {
+      res.writeHead(200, { "content-type": "application/json" });
+      res.end(JSON.stringify({ ok: true, server: NKSWEB_SERVER_NAME, path }));
+      return;
+    }
+    if (!req.url || !req.url.startsWith(path)) {
+      res.writeHead(404).end();
+      return;
+    }
+    transport.handleRequest(req, res).catch((err) => {
+      console.error("HTTP transport error:", err);
+      if (!res.headersSent) res.writeHead(500).end();
+    });
+  });
+
+  httpServer.listen(port, host, () => {
+    console.error(`${NKSWEB_SERVER_NAME} running on http://${host}:${port}${path}`);
+  });
+}
+
+async function main(): Promise<void> {
+  const config = getConfig();
+  const server = await createNksWebServer(config);
+
+  const transport = (process.env.MCP_TRANSPORT ?? "stdio").toLowerCase();
+  switch (transport) {
+    case "stdio":
+      await runStdio(server);
+      break;
+    case "http":
+      await runHttp(server);
+      break;
+    default:
+      console.error(`Unknown MCP_TRANSPORT='${transport}', expected stdio|http`);
+      process.exit(1);
+  }
 }
 
 main().catch((err) => {

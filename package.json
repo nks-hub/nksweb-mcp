@@ -1,16 +1,25 @@
 {
   "name": "@nks-hub/nksweb-mcp",
-  "version": "0.2.3",
+  "version": "0.3.3",
   "description": "MCP server for NKS-Web CMS tenant management - manage pages, articles, news, redirects, users, and analytics via Claude Code",
   "type": "module",
-  "main": "build/index.js",
+  "main": "build/server.js",
+  "types": "build/server.d.ts",
   "bin": {
     "nksweb-mcp": "./build/index.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./build/server.d.ts",
+      "import": "./build/server.js"
+    },
+    "./cli": "./build/index.js"
   },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
     "start": "node build/index.js",
+    "start:http": "cross-env MCP_TRANSPORT=http node build/index.js",
     "test": "tsx tests/integration.test.ts"
   },
   "keywords": [
