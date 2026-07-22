@@ -57,6 +57,10 @@ const pageOutput = {
   showInNavbar: z.boolean().optional(),
   showInFooter: z.boolean().optional(),
   lang: z.string().optional(),
+  translationGroup: z.string().nullable().optional(),
+  navbarGroup: z.string().nullable().optional(),
+  navbarPosition: z.number().nullable().optional(),
+  footerPosition: z.number().nullable().optional(),
 };
 
 const pageListOutput = {
@@ -194,6 +198,10 @@ export function registerPagesTools(
         showInNavbar: z.boolean().optional().describe("Show this page in the top navbar"),
         showInFooter: z.boolean().optional().describe("Show this page in the footer navigation"),
         lang: z.string().optional().describe("Language code ISO 639-1 (e.g. 'cs', 'en')"),
+        translationGroup: z.string().nullable().optional().describe("Ties the language mutations of one page together (e.g. 'contact' for both cs 'kontakt' and en 'contact'), so the language switcher and hreflang can pair them. Use the same value on every mutation; null clears it."),
+        navbarGroup: z.string().nullable().optional().describe("Navbar dropdown group id this page belongs to; null keeps it standalone"),
+        navbarPosition: z.number().nullable().optional().describe("Order within the navbar — lower first; null falls back to `position`"),
+        footerPosition: z.number().nullable().optional().describe("Order within the footer navigation — lower first; null falls back to `position`"),
       },
       outputSchema: pageOutput,
       annotations: {
@@ -244,6 +252,10 @@ export function registerPagesTools(
         showInNavbar: z.boolean().optional().describe("Show this page in the top navbar"),
         showInFooter: z.boolean().optional().describe("Show this page in the footer navigation"),
         lang: z.string().optional().describe("Language code ISO 639-1 (e.g. 'cs', 'en')"),
+        translationGroup: z.string().nullable().optional().describe("Ties the language mutations of one page together (e.g. 'contact' for both cs 'kontakt' and en 'contact'), so the language switcher and hreflang can pair them. Use the same value on every mutation; null clears it."),
+        navbarGroup: z.string().nullable().optional().describe("Navbar dropdown group id this page belongs to; null keeps it standalone"),
+        navbarPosition: z.number().nullable().optional().describe("Order within the navbar — lower first; null falls back to `position`"),
+        footerPosition: z.number().nullable().optional().describe("Order within the footer navigation — lower first; null falls back to `position`"),
       },
       outputSchema: pageOutput,
       annotations: {
