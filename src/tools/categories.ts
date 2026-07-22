@@ -13,7 +13,7 @@ interface Category {
 const categoryOutput = {
   id: z.number(),
   title: z.string(),
-  description: z.string().optional(),
+  description: z.string().nullable().optional(),
   parentId: z.number().nullable().optional(),
 };
 
@@ -22,9 +22,9 @@ const categoryListOutput = {
 };
 
 const deleteResultOutput = {
-  deleted: z.boolean().optional(),
-  status: z.string().optional(),
-  message: z.string().optional(),
+  deleted: z.boolean().nullable().optional(),
+  status: z.string().nullable().optional(),
+  message: z.string().nullable().optional(),
 };
 
 export function registerCategoriesTools(

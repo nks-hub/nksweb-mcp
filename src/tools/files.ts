@@ -14,9 +14,9 @@ interface FileItem {
 const fileOutput = {
   id: z.number(),
   name: z.string(),
-  fileName: z.string().optional(),
-  mimeType: z.string().optional(),
-  fileSize: z.number().optional(),
+  fileName: z.string().nullable().optional(),
+  mimeType: z.string().nullable().optional(),
+  fileSize: z.number().nullable().optional(),
 };
 
 const fileListOutput = {
@@ -24,9 +24,9 @@ const fileListOutput = {
 };
 
 const deleteResultOutput = {
-  deleted: z.boolean().optional(),
-  status: z.string().optional(),
-  message: z.string().optional(),
+  deleted: z.boolean().nullable().optional(),
+  status: z.string().nullable().optional(),
+  message: z.string().nullable().optional(),
 };
 
 export function registerFilesTools(server: McpServer, client: NksWebClient): void {

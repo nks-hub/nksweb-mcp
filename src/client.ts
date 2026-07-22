@@ -39,8 +39,7 @@ export class NksWebClient {
    */
   async detectTenantMode(): Promise<void> {
     try {
-      const resp = await this.get<{ status: string; data: Array<{ slug: string; name?: string }> }>("/tenants");
-      const tenants = resp.data ?? [];
+      const tenants = (await this.get<Array<{ slug: string; name?: string }>>("/tenants")) ?? [];
       this.availableTenants = tenants.map((t) => t.slug);
 
       if (tenants.length === 1) {
@@ -164,8 +163,27 @@ export class NksWebClient {
       throw new Error(formatApiError(res.status, text));
     }
 
-    return (await res.json()) as T;
+    return unwrap(await res.json()) as T;
   }
+}
+
+/**
+ * The API answers with an envelope: `{status: "ok", data: ...}`. Callers want the
+ * payload, so it is unwrapped here rather than in every single tool — doing it
+ * per tool is what made list endpoints silently return an empty result.
+ */
+function unwrap(body: unknown): unknown {
+  if (
+    body !== null &&
+    typeof body === "object" &&
+    !Array.isArray(body) &&
+    "data" in body &&
+    "status" in body
+  ) {
+    return (body as { data: unknown }).data;
+  }
+
+  return body;
 }
 
 function formatApiError(status: number, body: string): string {

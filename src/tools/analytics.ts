@@ -12,12 +12,12 @@ const limitSchema = {
 };
 
 const overviewOutput = {
-  sessions: z.number().optional(),
-  pageviews: z.number().optional(),
-  uniqueUsers: z.number().optional(),
-  pagesPerSession: z.number().optional(),
-  bounceRate: z.number().optional(),
-  avgSessionDuration: z.number().optional(),
+  sessions: z.number().nullable().optional(),
+  pageviews: z.number().nullable().optional(),
+  uniqueUsers: z.number().nullable().optional(),
+  pagesPerSession: z.number().nullable().optional(),
+  bounceRate: z.number().nullable().optional(),
+  avgSessionDuration: z.number().nullable().optional(),
 };
 
 const breakdownOutput = {

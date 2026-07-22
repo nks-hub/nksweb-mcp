@@ -15,8 +15,8 @@ const newsOutput = {
   id: z.number(),
   name: z.string(),
   url: z.string(),
-  content: z.string().optional(),
-  published: z.boolean().optional(),
+  content: z.string().nullable().optional(),
+  published: z.boolean().nullable().optional(),
 };
 
 const newsListOutput = {
@@ -24,9 +24,9 @@ const newsListOutput = {
 };
 
 const deleteResultOutput = {
-  deleted: z.boolean().optional(),
-  status: z.string().optional(),
-  message: z.string().optional(),
+  deleted: z.boolean().nullable().optional(),
+  status: z.string().nullable().optional(),
+  message: z.string().nullable().optional(),
 };
 
 export function registerNewsTools(server: McpServer, client: NksWebClient): void {

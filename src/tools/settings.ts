@@ -7,7 +7,7 @@ const settingsMapOutput = {
 };
 
 const settingValueOutput = {
-  key: z.string().optional(),
+  key: z.string().nullable().optional(),
   value: z.unknown().optional(),
 };
 

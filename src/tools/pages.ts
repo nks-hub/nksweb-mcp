@@ -19,11 +19,6 @@ interface Page {
   [key: string]: unknown;
 }
 
-interface ApiResponse<T> {
-  status: string;
-  data: T;
-}
-
 const pageTypeSchema = z.enum([
   "default",
   "homepage",
@@ -43,20 +38,23 @@ const pageTypeSchema = z.enum([
 ]);
 
 // Output schemas — describe the response shape so Apps SDK / clients can validate.
+// Every optional column is also nullable: the API returns an explicit null for
+// empty values, and a schema that only allowed "missing" made the validator
+// reject whole responses, which surfaced as an empty page list.
 const pageOutput = {
   id: z.number(),
   name: z.string(),
   url: z.string(),
-  content: z.string().optional(),
-  type: z.string().optional(),
-  status: z.number().optional(),
-  metaTitle: z.string().optional(),
-  metaDescription: z.string().optional(),
-  position: z.number().optional(),
-  showInMenu: z.boolean().optional(),
-  showInNavbar: z.boolean().optional(),
-  showInFooter: z.boolean().optional(),
-  lang: z.string().optional(),
+  content: z.string().nullable().optional(),
+  type: z.string().nullable().optional(),
+  status: z.number().nullable().optional(),
+  metaTitle: z.string().nullable().optional(),
+  metaDescription: z.string().nullable().optional(),
+  position: z.number().nullable().optional(),
+  showInMenu: z.boolean().nullable().optional(),
+  showInNavbar: z.boolean().nullable().optional(),
+  showInFooter: z.boolean().nullable().optional(),
+  lang: z.string().nullable().optional(),
   translationGroup: z.string().nullable().optional(),
   navbarGroup: z.string().nullable().optional(),
   navbarPosition: z.number().nullable().optional(),
@@ -68,7 +66,7 @@ const pageListOutput = {
 };
 
 const pageEnvelopeOutput = {
-  status: z.string().optional(),
+  status: z.string().nullable().optional(),
   data: z.object(pageOutput).passthrough().optional(),
 };
 
@@ -83,9 +81,9 @@ const contentBlockListOutput = {
 };
 
 const deleteResultOutput = {
-  deleted: z.boolean().optional(),
-  status: z.string().optional(),
-  message: z.string().optional(),
+  deleted: z.boolean().nullable().optional(),
+  status: z.string().nullable().optional(),
+  message: z.string().nullable().optional(),
 };
 
 export function registerPagesTools(
@@ -312,8 +310,7 @@ export function registerPagesTools(
     },
     async (args) => {
       try {
-        const resp = await client.get<ApiResponse<Page>>(`/pages/${args.pageId}`);
-        const page = resp.data;
+        const page = await client.get<Page>(`/pages/${args.pageId}`);
         const extraData = (page.extraData as Record<string, unknown>) ?? {};
         const blocks =
           (extraData.content_blocks as Record<
@@ -382,8 +379,7 @@ export function registerPagesTools(
     },
     async (args) => {
       try {
-        const resp = await client.get<ApiResponse<Page>>(`/pages/${args.pageId}`);
-        const page = resp.data;
+        const page = await client.get<Page>(`/pages/${args.pageId}`);
         const extraData = {
           ...((page.extraData as Record<string, unknown>) ?? {}),
         };
@@ -438,8 +434,7 @@ export function registerPagesTools(
     },
     async (args) => {
       try {
-        const resp = await client.get<ApiResponse<Page>>(`/pages/${args.pageId}`);
-        const page = resp.data;
+        const page = await client.get<Page>(`/pages/${args.pageId}`);
         const extraData = {
           ...((page.extraData as Record<string, unknown>) ?? {}),
         };

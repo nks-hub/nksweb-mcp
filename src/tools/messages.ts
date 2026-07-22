@@ -15,12 +15,12 @@ interface Message {
 
 const messageOutput = {
   id: z.number(),
-  name: z.string().optional(),
-  email: z.string().optional(),
-  phone: z.string().optional(),
-  subject: z.string().optional(),
-  message: z.string().optional(),
-  isRead: z.boolean().optional(),
+  name: z.string().nullable().optional(),
+  email: z.string().nullable().optional(),
+  phone: z.string().nullable().optional(),
+  subject: z.string().nullable().optional(),
+  message: z.string().nullable().optional(),
+  isRead: z.boolean().nullable().optional(),
 };
 
 const messageListOutput = {
@@ -28,9 +28,9 @@ const messageListOutput = {
 };
 
 const deleteResultOutput = {
-  deleted: z.boolean().optional(),
-  status: z.string().optional(),
-  message: z.string().optional(),
+  deleted: z.boolean().nullable().optional(),
+  status: z.string().nullable().optional(),
+  message: z.string().nullable().optional(),
 };
 
 export function registerMessagesTools(server: McpServer, client: NksWebClient): void {

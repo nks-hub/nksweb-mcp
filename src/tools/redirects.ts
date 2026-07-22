@@ -17,10 +17,10 @@ const redirectOutput = {
   id: z.number(),
   oldUrl: z.string(),
   newUrl: z.string(),
-  statusCode: z.number().optional(),
-  active: z.boolean().optional(),
-  hitCount: z.number().optional(),
-  note: z.string().optional(),
+  statusCode: z.number().nullable().optional(),
+  active: z.boolean().nullable().optional(),
+  hitCount: z.number().nullable().optional(),
+  note: z.string().nullable().optional(),
 };
 
 const redirectListOutput = {
@@ -28,9 +28,9 @@ const redirectListOutput = {
 };
 
 const deleteResultOutput = {
-  deleted: z.boolean().optional(),
-  status: z.string().optional(),
-  message: z.string().optional(),
+  deleted: z.boolean().nullable().optional(),
+  status: z.string().nullable().optional(),
+  message: z.string().nullable().optional(),
 };
 
 export function registerRedirectsTools(server: McpServer, client: NksWebClient): void {

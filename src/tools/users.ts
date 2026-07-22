@@ -13,8 +13,8 @@ interface User {
 const userOutput = {
   id: z.number(),
   username: z.string(),
-  name: z.string().optional(),
-  role: z.number().optional(),
+  name: z.string().nullable().optional(),
+  role: z.number().nullable().optional(),
 };
 
 const userListOutput = {
@@ -22,9 +22,9 @@ const userListOutput = {
 };
 
 const deleteResultOutput = {
-  deleted: z.boolean().optional(),
-  status: z.string().optional(),
-  message: z.string().optional(),
+  deleted: z.boolean().nullable().optional(),
+  status: z.string().nullable().optional(),
+  message: z.string().nullable().optional(),
 };
 
 export function registerUsersTools(server: McpServer, client: NksWebClient): void {

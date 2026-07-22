@@ -20,12 +20,12 @@ const articleOutput = {
   id: z.number(),
   name: z.string(),
   url: z.string(),
-  descriptionShort: z.string().optional(),
-  description: z.string().optional(),
-  status: z.number().optional(),
-  metaTitle: z.string().optional(),
-  metaDescription: z.string().optional(),
-  lang: z.string().optional(),
+  descriptionShort: z.string().nullable().optional(),
+  description: z.string().nullable().optional(),
+  status: z.number().nullable().optional(),
+  metaTitle: z.string().nullable().optional(),
+  metaDescription: z.string().nullable().optional(),
+  lang: z.string().nullable().optional(),
   categoryIds: z.array(z.number()).optional(),
 };
 
@@ -34,9 +34,9 @@ const articleListOutput = {
 };
 
 const deleteResultOutput = {
-  deleted: z.boolean().optional(),
-  status: z.string().optional(),
-  message: z.string().optional(),
+  deleted: z.boolean().nullable().optional(),
+  status: z.string().nullable().optional(),
+  message: z.string().nullable().optional(),
 };
 
 export function registerArticlesTools(

@@ -3,14 +3,14 @@ import { z } from "zod";
 import { NksWebClient, truncateResponse } from "../client.js";
 
 const tenantsListOutput = {
-  status: z.string().optional(),
+  status: z.string().nullable().optional(),
   data: z.array(z.record(z.unknown())).optional().describe("Available tenants"),
   currentTenant: z.string().nullable().optional().describe("Currently active tenant slug"),
 };
 
 const tenantSwitchOutput = {
   tenant: z.string().nullable().optional().describe("Active tenant slug after the switch (null when cleared)"),
-  message: z.string().optional(),
+  message: z.string().nullable().optional(),
 };
 
 export function registerTenantsTools(server: McpServer, client: NksWebClient): void {
