@@ -7,9 +7,9 @@
 [![MCP SDK](https://img.shields.io/badge/MCP_SDK-1.27+-8b5cf6.svg)](https://modelcontextprotocol.io/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-> MCP server for [NKS-Web CMS](https://nks-hub.cz) — manage pages, articles, news, files, users, analytics, and more directly from Claude Code or any MCP-compatible client.
+> MCP server for [NKS-Web CMS](https://nks-hub.cz): manage pages, articles, news, files, users and analytics from Claude Code or any MCP-compatible client.
 
-Instead of switching between admin panels, let your AI assistant manage CMS content directly:
+Requests an AI assistant can handle with it:
 
 - "List all active pages on the site"
 - "Create a new article about product updates"
@@ -19,14 +19,14 @@ Instead of switching between admin panels, let your AI assistant manage CMS cont
 
 ## Features
 
-- 🛠️ **49 Tools** - Complete CMS management — pages, articles, categories, news, files, users, messages, redirects, settings, analytics, tenants
-- 🧱 **Content Blocks** - Create, update, delete individual content blocks within pages (Quill editor-compatible)
-- 🏢 **Multi-Tenant** - List available tenants and switch context to manage any tenant's data
-- 🔍 **Page Filtering** - Filter pages by type, status, language, or full-text search across name/URL/content
-- 📊 **Analytics Metrics** - 14 analytics dimensions — countries, browsers, devices, UTM campaigns, and more
-- 🏷️ **Tool Annotations** - MCP annotations (readOnly, destructive, idempotent) for safe AI tool usage
-- ✂️ **Response Truncation** - Auto-truncation at 25k chars to prevent context bloat
-- 💬 **Actionable Errors** - HTTP status-aware error messages that guide the LLM toward correct usage
+- 🛠️ **49 tools** - Pages, articles, categories, news, files, users, messages, redirects, settings, analytics and tenants
+- 🧱 **Content blocks** - Create, update and delete the named HTML blocks of a page that the admin edits in Quill
+- 🏢 **Tenant switching** - List tenants and send later requests to another tenant through the `X-Tenant` header
+- 🔍 **Page filtering** - Filter pages by type, status and language, or search name, URL slug and HTML content
+- 📊 **Analytics** - Overview, top pages, referrers and a breakdown by 14 dimensions such as country, browser, device and UTM parameters
+- 🏷️ **Tool annotations** - Each tool carries the MCP `readOnlyHint`, `destructiveHint` and `idempotentHint` hints
+- ✂️ **Response truncation** - Lists over 25,000 characters are cut to half the items with a note to paginate; other responses are cut at 25,000 characters
+- 💬 **Error messages** - HTTP 400, 401, 403, 404, 409, 429, 502 and 503 each map to a message that names the cause, such as a missing API key scope
 
 ## Requirements
 
@@ -35,7 +35,7 @@ Instead of switching between admin panels, let your AI assistant manage CMS cont
 
 ## Installation
 
-No installation needed — just use `npx`:
+Run it with npx without installing:
 
 ```bash
 npx -y @nks-hub/nksweb-mcp
@@ -82,7 +82,7 @@ Or via Claude Code CLI:
 claude mcp add nksweb -e NKSWEB_URL=https://your-site.com -e NKSWEB_API_KEY=nks_key -- npx -y @nks-hub/nksweb-mcp
 ```
 
-### Environment Variables
+### Environment variables
 
 | Variable | Required | Description |
 |----------|----------|-------------|
@@ -91,7 +91,7 @@ claude mcp add nksweb -e NKSWEB_URL=https://your-site.com -e NKSWEB_API_KEY=nks_
 
 ## Usage
 
-Ask Claude Code anything about your CMS content. All tools are automatically available.
+Once configured, the MCP client sees the tools listed below and calls them when you ask about CMS content.
 
 ## Tools (49)
 
@@ -102,7 +102,7 @@ Ask Claude Code anything about your CMS content. All tools are automatically ava
 | `nksweb_list_pages` | List pages with optional filters: `type`, `status`, `search`, `lang` |
 | `nksweb_get_page` | Get full page detail by ID including HTML content and extraData |
 | `nksweb_create_page` | Create a new page with content, type, SEO, and navigation settings |
-| `nksweb_update_page` | Update an existing page (partial update — only send changed fields) |
+| `nksweb_update_page` | Update an existing page (partial update: send only changed fields) |
 | `nksweb_delete_page` | Delete a page (soft-delete) |
 | `nksweb_list_content_blocks` | List all named content blocks for a page |
 | `nksweb_upsert_content_block` | Create or update a single content block by key |
@@ -187,7 +187,7 @@ Ask Claude Code anything about your CMS content. All tools are automatically ava
 
 | Tool | Description |
 |------|-------------|
-| `nksweb_analytics_overview` | Traffic overview — sessions, pageviews, users, bounce rate, avg duration |
+| `nksweb_analytics_overview` | Traffic overview: sessions, pageviews, users, bounce rate, avg duration |
 | `nksweb_analytics_pages` | Top visited pages with visit count, pageviews, bounce rate |
 | `nksweb_analytics_referrers` | Top traffic sources with visit count and percentage |
 | `nksweb_analytics_metric` | Breakdown by dimension: `country`, `browser`, `os`, `device_type`, `city`, `region`, `language`, `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term`, `pathname`, `referrer` |
@@ -197,11 +197,11 @@ Ask Claude Code anything about your CMS content. All tools are automatically ava
 | Tool | Description |
 |------|-------------|
 | `nksweb_list_tenants` | List available tenants (multi-tenant key: all tenants, single-tenant key: current tenant) |
-| `nksweb_set_tenant` | Switch active tenant context — all subsequent operations target that tenant |
+| `nksweb_set_tenant` | Switch the active tenant; all subsequent operations target it |
 
-## API Key Scopes
+## API key scopes
 
-The API key needs appropriate scopes for the tools you want to use:
+Each tool needs the matching scope on the API key:
 
 | Scope | Tools |
 |-------|-------|
@@ -218,9 +218,9 @@ The API key needs appropriate scopes for the tools you want to use:
 | `analytics:read` | analytics access |
 | `tenants:read` | tenant listing |
 
-## Page Filtering
+## Page filtering
 
-The `nksweb_list_pages` tool supports these query filters:
+`nksweb_list_pages` accepts these filters:
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -229,9 +229,9 @@ The `nksweb_list_pages` tool supports these query filters:
 | `search` | string | Full-text search across page name, URL slug, and HTML content |
 | `lang` | string | ISO 639-1 language code (e.g. `cs`, `en`) |
 
-## Analytics Parameters
+## Analytics parameters
 
-All analytics tools accept optional date range parameters:
+All analytics tools accept these optional parameters:
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -239,9 +239,9 @@ All analytics tools accept optional date range parameters:
 | `endDate` | string | End date `YYYY-MM-DD` (default: today) |
 | `limit` | number | Max results 1–100 (default: 10) |
 
-### Available Metrics
+### Available metrics
 
-The `nksweb_analytics_metric` tool supports these dimensions:
+Dimensions for `nksweb_analytics_metric`:
 
 | Metric | Description |
 |--------|-------------|
@@ -262,7 +262,7 @@ The `nksweb_analytics_metric` tool supports these dimensions:
 
 ## Examples
 
-### Content Management
+### Content management
 
 ```
 User: "List all active pages"
@@ -303,7 +303,7 @@ User: "Where does our traffic come from?"
 → nksweb_analytics_referrers {}
 ```
 
-### Multi-Tenant
+### Multi-tenant
 
 ```
 User: "What tenants are available?"
@@ -319,7 +319,7 @@ User: "Go back to default"
 → nksweb_set_tenant { slug: "" }
 ```
 
-### Articles & News
+### Articles and news
 
 ```
 User: "Create an article about our new feature"
@@ -334,7 +334,7 @@ User: "Delete news item #5"
 → nksweb_delete_news { id: 5 }
 ```
 
-### Settings & Redirects
+### Settings and redirects
 
 ```
 User: "What settings does this tenant have?"
@@ -348,7 +348,7 @@ User: "Show all contact form messages"
 → nksweb_list_messages {}
 ```
 
-## Project Structure
+## Project structure
 
 ```
 nksweb-mcp/
@@ -379,9 +379,9 @@ nksweb-mcp/
 ## Links
 
 - [NKS-Web CMS](https://nks-hub.cz)
-- [npm Package](https://www.npmjs.com/package/@nks-hub/nksweb-mcp)
-- [@nks-hub/rybbit-mcp](https://github.com/nks-hub/rybbit-mcp) — MCP server for Rybbit Analytics
-- [@nks-hub/rybbit-ts](https://github.com/nks-hub/rybbit-ts) — TypeScript tracking SDK
+- [npm package](https://www.npmjs.com/package/@nks-hub/nksweb-mcp)
+- [@nks-hub/rybbit-mcp](https://github.com/nks-hub/rybbit-mcp): MCP server for Rybbit Analytics
+- [@nks-hub/rybbit-ts](https://github.com/nks-hub/rybbit-ts): TypeScript tracking SDK
 
 ## Development
 
