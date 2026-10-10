@@ -1,42 +1,63 @@
 # @nks-hub/nksweb-mcp
 
+[![Build Status](https://github.com/nks-hub/nksweb-mcp/actions/workflows/build.yml/badge.svg)](https://github.com/nks-hub/nksweb-mcp/actions)
 [![npm version](https://img.shields.io/npm/v/@nks-hub/nksweb-mcp.svg)](https://www.npmjs.com/package/@nks-hub/nksweb-mcp)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933.svg)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-3178c6.svg)](https://www.typescriptlang.org/)
 [![MCP SDK](https://img.shields.io/badge/MCP_SDK-1.27+-8b5cf6.svg)](https://modelcontextprotocol.io/)
-[![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933.svg)](https://nodejs.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-> MCP server pro [NKS-Web CMS](https://nks-hub.cz) — spravujte stránky, články, novinky, soubory, uživatele, analytiku a další přímo z Claude Code nebo jakéhokoliv MCP-kompatibilního klienta.
+> MCP server for [NKS-Web CMS](https://nks-hub.cz) — manage pages, articles, news, files, users, analytics, and more directly from Claude Code or any MCP-compatible client.
 
-*[English version](README_EN.md)*
+Instead of switching between admin panels, let your AI assistant manage CMS content directly:
 
----
+- "List all active pages on the site"
+- "Create a new article about product updates"
+- "What are the top visited pages this month?"
+- "Show me browser breakdown from analytics"
+- "Switch to the acme tenant and list their news"
 
-## Proč?
+## Features
 
-Místo přepínání mezi admin panely nechte AI asistenta spravovat CMS obsah přímo:
+- 🛠️ **49 Tools** - Complete CMS management — pages, articles, categories, news, files, users, messages, redirects, settings, analytics, tenants
+- 🧱 **Content Blocks** - Create, update, delete individual content blocks within pages (Quill editor-compatible)
+- 🏢 **Multi-Tenant** - List available tenants and switch context to manage any tenant's data
+- 🔍 **Page Filtering** - Filter pages by type, status, language, or full-text search across name/URL/content
+- 📊 **Analytics Metrics** - 14 analytics dimensions — countries, browsers, devices, UTM campaigns, and more
+- 🏷️ **Tool Annotations** - MCP annotations (readOnly, destructive, idempotent) for safe AI tool usage
+- ✂️ **Response Truncation** - Auto-truncation at 25k chars to prevent context bloat
+- 💬 **Actionable Errors** - HTTP status-aware error messages that guide the LLM toward correct usage
 
-- "Vypiš všechny aktivní stránky"
-- "Vytvoř nový článek o aktualizaci produktu"
-- "Jaké jsou nejnavštěvovanější stránky tento měsíc?"
-- "Ukaž rozdělení prohlížečů z analytiky"
-- "Přepni na tenant acme a vypiš jejich novinky"
+## Requirements
 
----
+- **Node.js**: 18+
+- **NKS-Web CMS**: Instance with API enabled and API key created
 
-## Rychlý start
+## Installation
 
-### Instalace
-
-Žádná instalace není potřeba — stačí `npx`:
+No installation needed — just use `npx`:
 
 ```bash
 npx -y @nks-hub/nksweb-mcp
 ```
 
-### Konfigurace
+Or install globally:
 
-Přidejte do `~/.claude/.mcp.json` nebo projektové MCP konfigurace:
+```bash
+npm install -g @nks-hub/nksweb-mcp
+```
+
+### From source
+
+```bash
+git clone https://github.com/nks-hub/nksweb-mcp.git
+cd nksweb-mcp
+npm install && npm run build
+```
+
+## Configuration
+
+Add to your `~/.claude/.mcp.json` or project-level MCP config:
 
 ```json
 {
@@ -53,400 +74,356 @@ Přidejte do `~/.claude/.mcp.json` nebo projektové MCP konfigurace:
 }
 ```
 
-Nebo přes Claude Code CLI:
+When built from source, use `"command": "node"` with `"args": ["/path/to/nksweb-mcp/build/index.js"]` instead.
+
+Or via Claude Code CLI:
 
 ```bash
 claude mcp add nksweb -e NKSWEB_URL=https://your-site.com -e NKSWEB_API_KEY=nks_key -- npx -y @nks-hub/nksweb-mcp
 ```
 
-### Použití
+### Environment Variables
 
-Zeptejte se Claude Code na cokoliv ohledně vašeho CMS obsahu. Všechny nástroje jsou automaticky k dispozici.
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `NKSWEB_URL` | Yes | Base URL of the NKS-Web instance (e.g. `https://your-site.com`) |
+| `NKSWEB_API_KEY` | Yes | API key with appropriate scopes (prefix `nks_`) |
 
----
+## Usage
 
-## Funkce
+Ask Claude Code anything about your CMS content. All tools are automatically available.
 
-| Funkce | Popis |
-|--------|-------|
-| **49 nástrojů** | Kompletní správa CMS — stránky, články, kategorie, novinky, soubory, uživatelé, zprávy, přesměrování, nastavení, analytika, tenanti |
-| **Content bloky** | Vytváření, aktualizace a mazání pojmenovaných bloků obsahu na stránkách (kompatibilní s Quill editorem) |
-| **Multi-tenant** | Výpis dostupných tenantů a přepínání kontextu pro správu dat libovolného tenanta |
-| **Filtrování stránek** | Filtry podle typu, stavu, jazyka nebo fulltextové hledání v názvu/URL/obsahu |
-| **Analytické metriky** | 14 analytických dimenzí — země, prohlížeče, zařízení, UTM kampaně a další |
-| **Anotace nástrojů** | MCP anotace (readOnly, destructive, idempotent) pro bezpečné použití AI |
-| **Zkracování odpovědí** | Automatické zkrácení na 25k znaků pro prevenci zahlcení kontextu |
-| **Aktuální chyby** | Chybové zprávy podle HTTP statusu, které navigují LLM ke správnému použití |
+## Tools (49)
 
----
+### Pages (8 tools)
 
-## Proměnné prostředí
+| Tool | Description |
+|------|-------------|
+| `nksweb_list_pages` | List pages with optional filters: `type`, `status`, `search`, `lang` |
+| `nksweb_get_page` | Get full page detail by ID including HTML content and extraData |
+| `nksweb_create_page` | Create a new page with content, type, SEO, and navigation settings |
+| `nksweb_update_page` | Update an existing page (partial update — only send changed fields) |
+| `nksweb_delete_page` | Delete a page (soft-delete) |
+| `nksweb_list_content_blocks` | List all named content blocks for a page |
+| `nksweb_upsert_content_block` | Create or update a single content block by key |
+| `nksweb_delete_content_block` | Delete a content block from a page |
 
-| Proměnná | Povinná | Popis |
-|----------|---------|-------|
-| `NKSWEB_URL` | Ano | Základní URL instance NKS-Web (např. `https://your-site.com`) |
-| `NKSWEB_API_KEY` | Ano | API klíč s příslušnými oprávněními (prefix `nks_`) |
+### Articles (5 tools)
 
----
+| Tool | Description |
+|------|-------------|
+| `nksweb_list_articles` | List all articles |
+| `nksweb_get_article` | Get article detail by ID |
+| `nksweb_create_article` | Create article with content, categories, and SEO |
+| `nksweb_update_article` | Update an existing article |
+| `nksweb_delete_article` | Delete an article |
 
-## Nástroje (49)
+### Categories (5 tools)
 
-### Stránky (8 nástrojů)
+| Tool | Description |
+|------|-------------|
+| `nksweb_list_categories` | List all article categories |
+| `nksweb_get_category` | Get category detail by ID |
+| `nksweb_create_category` | Create a category (supports nested tree) |
+| `nksweb_update_category` | Update a category |
+| `nksweb_delete_category` | Delete a category |
 
-| Nástroj | Popis |
-|---------|-------|
-| `nksweb_list_pages` | Výpis stránek s volitelnými filtry: `type`, `status`, `search`, `lang` |
-| `nksweb_get_page` | Detail stránky podle ID včetně HTML obsahu a extraData |
-| `nksweb_create_page` | Vytvoření nové stránky s obsahem, typem, SEO a nastavením navigace |
-| `nksweb_update_page` | Aktualizace stránky (částečná — posílají se jen změněná pole) |
-| `nksweb_delete_page` | Smazání stránky (soft-delete) |
-| `nksweb_list_content_blocks` | Výpis všech pojmenovaných bloků obsahu stránky |
-| `nksweb_upsert_content_block` | Vytvoření nebo aktualizace bloku obsahu podle klíče |
-| `nksweb_delete_content_block` | Smazání bloku obsahu stránky |
+### News (5 tools)
 
-### Články (5 nástrojů)
+| Tool | Description |
+|------|-------------|
+| `nksweb_list_news` | List all news items |
+| `nksweb_get_news_item` | Get news item detail by ID |
+| `nksweb_create_news` | Create a news item |
+| `nksweb_update_news` | Update a news item |
+| `nksweb_delete_news` | Delete a news item |
 
-| Nástroj | Popis |
-|---------|-------|
-| `nksweb_list_articles` | Výpis všech článků |
-| `nksweb_get_article` | Detail článku podle ID |
-| `nksweb_create_article` | Vytvoření článku s obsahem, kategoriemi a SEO |
-| `nksweb_update_article` | Aktualizace existujícího článku |
-| `nksweb_delete_article` | Smazání článku |
+### Files (3 tools)
 
-### Kategorie (5 nástrojů)
+| Tool | Description |
+|------|-------------|
+| `nksweb_list_files` | List all uploaded files |
+| `nksweb_get_file` | Get file metadata by ID |
+| `nksweb_delete_file` | Delete a file |
 
-| Nástroj | Popis |
-|---------|-------|
-| `nksweb_list_categories` | Výpis všech kategorií článků |
-| `nksweb_get_category` | Detail kategorie podle ID |
-| `nksweb_create_category` | Vytvoření kategorie (podpora vnořeného stromu) |
-| `nksweb_update_category` | Aktualizace kategorie |
-| `nksweb_delete_category` | Smazání kategorie |
+### Users (5 tools)
 
-### Novinky (5 nástrojů)
+| Tool | Description |
+|------|-------------|
+| `nksweb_list_users` | List all admin users |
+| `nksweb_get_user` | Get user detail by ID |
+| `nksweb_create_user` | Create a new admin user |
+| `nksweb_update_user` | Update user profile or role |
+| `nksweb_delete_user` | Delete a user |
 
-| Nástroj | Popis |
-|---------|-------|
-| `nksweb_list_news` | Výpis všech novinek |
-| `nksweb_get_news_item` | Detail novinky podle ID |
-| `nksweb_create_news` | Vytvoření novinky |
-| `nksweb_update_news` | Aktualizace novinky |
-| `nksweb_delete_news` | Smazání novinky |
+### Messages (4 tools)
 
-### Soubory (3 nástroje)
+| Tool | Description |
+|------|-------------|
+| `nksweb_list_messages` | List all contact form messages |
+| `nksweb_get_message` | Get message detail by ID |
+| `nksweb_mark_message_read` | Mark a message as read/unread |
+| `nksweb_delete_message` | Delete a message |
 
-| Nástroj | Popis |
-|---------|-------|
-| `nksweb_list_files` | Výpis všech nahraných souborů |
-| `nksweb_get_file` | Metadata souboru podle ID |
-| `nksweb_delete_file` | Smazání souboru |
+### Redirects (5 tools)
 
-### Uživatelé (5 nástrojů)
+| Tool | Description |
+|------|-------------|
+| `nksweb_list_redirects` | List all URL redirects |
+| `nksweb_get_redirect` | Get redirect detail by ID |
+| `nksweb_create_redirect` | Create a redirect rule (301/302/307) |
+| `nksweb_update_redirect` | Update a redirect |
+| `nksweb_delete_redirect` | Delete a redirect |
 
-| Nástroj | Popis |
-|---------|-------|
-| `nksweb_list_users` | Výpis všech admin uživatelů |
-| `nksweb_get_user` | Detail uživatele podle ID |
-| `nksweb_create_user` | Vytvoření nového admin uživatele |
-| `nksweb_update_user` | Aktualizace profilu nebo role uživatele |
-| `nksweb_delete_user` | Smazání uživatele |
+### Settings (3 tools)
 
-### Zprávy (4 nástroje)
+| Tool | Description |
+|------|-------------|
+| `nksweb_list_settings` | List all tenant settings |
+| `nksweb_get_setting` | Get a specific setting by key |
+| `nksweb_update_settings` | Update one or more settings |
 
-| Nástroj | Popis |
-|---------|-------|
-| `nksweb_list_messages` | Výpis všech zpráv z kontaktního formuláře |
-| `nksweb_get_message` | Detail zprávy podle ID |
-| `nksweb_mark_message_read` | Označení zprávy jako přečtené/nepřečtené |
-| `nksweb_delete_message` | Smazání zprávy |
+### Analytics (4 tools)
 
-### Přesměrování (5 nástrojů)
+| Tool | Description |
+|------|-------------|
+| `nksweb_analytics_overview` | Traffic overview — sessions, pageviews, users, bounce rate, avg duration |
+| `nksweb_analytics_pages` | Top visited pages with visit count, pageviews, bounce rate |
+| `nksweb_analytics_referrers` | Top traffic sources with visit count and percentage |
+| `nksweb_analytics_metric` | Breakdown by dimension: `country`, `browser`, `os`, `device_type`, `city`, `region`, `language`, `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term`, `pathname`, `referrer` |
 
-| Nástroj | Popis |
-|---------|-------|
-| `nksweb_list_redirects` | Výpis všech URL přesměrování |
-| `nksweb_get_redirect` | Detail přesměrování podle ID |
-| `nksweb_create_redirect` | Vytvoření pravidla přesměrování (301/302/307) |
-| `nksweb_update_redirect` | Aktualizace přesměrování |
-| `nksweb_delete_redirect` | Smazání přesměrování |
+### Tenants (2 tools)
 
-### Nastavení (3 nástroje)
+| Tool | Description |
+|------|-------------|
+| `nksweb_list_tenants` | List available tenants (multi-tenant key: all tenants, single-tenant key: current tenant) |
+| `nksweb_set_tenant` | Switch active tenant context — all subsequent operations target that tenant |
 
-| Nástroj | Popis |
-|---------|-------|
-| `nksweb_list_settings` | Výpis všech nastavení tenanta |
-| `nksweb_get_setting` | Získání konkrétního nastavení podle klíče |
-| `nksweb_update_settings` | Aktualizace jednoho nebo více nastavení |
+## API Key Scopes
 
-### Analytika (4 nástroje)
+The API key needs appropriate scopes for the tools you want to use:
 
-| Nástroj | Popis |
-|---------|-------|
-| `nksweb_analytics_overview` | Přehled návštěvnosti — sessions, pageviews, uživatelé, bounce rate, průměrná doba |
-| `nksweb_analytics_pages` | Nejnavštěvovanější stránky s počtem návštěv, pageviews, bounce rate |
-| `nksweb_analytics_referrers` | Největší zdroje návštěvnosti s počtem návštěv a procentem |
-| `nksweb_analytics_metric` | Rozdělení podle dimenze: `country`, `browser`, `os`, `device_type`, `city`, `region`, `language`, `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term`, `pathname`, `referrer` |
+| Scope | Tools |
+|-------|-------|
+| `pages:read` | list, get pages and content blocks |
+| `pages:write` | create, update, delete pages and content blocks |
+| `articles:read` / `articles:write` | article management |
+| `categories:read` / `categories:write` | category management |
+| `news:read` / `news:write` | news management |
+| `files:read` / `files:write` | file management |
+| `users:read` / `users:write` | user management |
+| `messages:read` / `messages:write` | message management |
+| `redirects:read` / `redirects:write` | redirect management |
+| `settings:read` / `settings:write` | settings management |
+| `analytics:read` | analytics access |
+| `tenants:read` | tenant listing |
 
-### Tenanti (2 nástroje)
+## Page Filtering
 
-| Nástroj | Popis |
-|---------|-------|
-| `nksweb_list_tenants` | Výpis dostupných tenantů (multi-tenant klíč: všechny, single-tenant klíč: aktuální) |
-| `nksweb_set_tenant` | Přepnutí aktivního tenanta — všechny následující operace cílí na něj |
+The `nksweb_list_pages` tool supports these query filters:
 
----
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `type` | string | Filter by page type: `default`, `homepage`, `contact`, `gallery`, `pricing`, `team`, `faq`, `news`, `articles`, `video_gallery`, `product`, `features`, `templates`, `demo`, `nks-pricing` |
+| `status` | number | `0` = disabled/draft, `1` = active/published |
+| `search` | string | Full-text search across page name, URL slug, and HTML content |
+| `lang` | string | ISO 639-1 language code (e.g. `cs`, `en`) |
 
-## Oprávnění API klíče
+## Analytics Parameters
 
-API klíč potřebuje příslušná oprávnění pro nástroje, které chcete používat:
+All analytics tools accept optional date range parameters:
 
-| Oprávnění | Nástroje |
-|-----------|----------|
-| `pages:read` | výpis, detail stránek a content bloků |
-| `pages:write` | vytvoření, aktualizace, smazání stránek a content bloků |
-| `articles:read` / `articles:write` | správa článků |
-| `categories:read` / `categories:write` | správa kategorií |
-| `news:read` / `news:write` | správa novinek |
-| `files:read` / `files:write` | správa souborů |
-| `users:read` / `users:write` | správa uživatelů |
-| `messages:read` / `messages:write` | správa zpráv |
-| `redirects:read` / `redirects:write` | správa přesměrování |
-| `settings:read` / `settings:write` | správa nastavení |
-| `analytics:read` | přístup k analytice |
-| `tenants:read` | výpis tenantů |
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `startDate` | string | Start date `YYYY-MM-DD` (default: 30 days ago) |
+| `endDate` | string | End date `YYYY-MM-DD` (default: today) |
+| `limit` | number | Max results 1–100 (default: 10) |
 
----
+### Available Metrics
 
-## Filtrování stránek
+The `nksweb_analytics_metric` tool supports these dimensions:
 
-Nástroj `nksweb_list_pages` podporuje tyto filtry:
+| Metric | Description |
+|--------|-------------|
+| `pathname` | Page paths (same as top pages) |
+| `referrer` | Traffic sources |
+| `country` | Visitor countries |
+| `region` | Visitor regions/states |
+| `city` | Visitor cities |
+| `browser` | Browser names (Chrome, Firefox, Safari, ...) |
+| `os` | Operating systems (Windows, macOS, iOS, Android, ...) |
+| `device_type` | Device categories (desktop, mobile, tablet) |
+| `language` | Browser language settings |
+| `utm_source` | UTM source parameter |
+| `utm_medium` | UTM medium parameter |
+| `utm_campaign` | UTM campaign parameter |
+| `utm_content` | UTM content parameter |
+| `utm_term` | UTM term parameter |
 
-| Parametr | Typ | Popis |
-|----------|-----|-------|
-| `type` | string | Filtr podle typu: `default`, `homepage`, `contact`, `gallery`, `pricing`, `team`, `faq`, `news`, `articles`, `video_gallery`, `product`, `features`, `templates`, `demo`, `nks-pricing` |
-| `status` | number | `0` = neaktivní/koncept, `1` = aktivní/publikovaná |
-| `search` | string | Fulltextové hledání v názvu stránky, URL slugu a HTML obsahu |
-| `lang` | string | ISO 639-1 kód jazyka (např. `cs`, `en`) |
+## Examples
 
----
+### Content Management
 
-## Parametry analytiky
+```
+User: "List all active pages"
+→ nksweb_list_pages { status: 1 }
 
-Všechny analytické nástroje přijímají volitelné parametry časového rozsahu:
+User: "Find pages containing 'pricing'"
+→ nksweb_list_pages { search: "pricing" }
 
-| Parametr | Typ | Popis |
-|----------|-----|-------|
-| `startDate` | string | Počáteční datum `YYYY-MM-DD` (výchozí: před 30 dny) |
-| `endDate` | string | Koncové datum `YYYY-MM-DD` (výchozí: dnes) |
-| `limit` | number | Max výsledků 1–100 (výchozí: 10) |
+User: "Show me the homepage"
+→ nksweb_list_pages { type: "homepage" }
 
-### Dostupné metriky
+User: "Create a new FAQ page"
+→ nksweb_create_page { name: "FAQ", url: "faq", type: "faq", status: 1,
+    content: "<h1>Frequently Asked Questions</h1>" }
 
-Nástroj `nksweb_analytics_metric` podporuje tyto dimenze:
+User: "Update the hero heading on homepage"
+→ nksweb_upsert_content_block { pageId: 14, key: "hero_heading",
+    content: "Digital Solutions That Work", label: "Hero Heading" }
+```
 
-| Metrika | Popis |
-|---------|-------|
-| `pathname` | Cesty stránek (stejné jako top stránky) |
-| `referrer` | Zdroje návštěvnosti |
-| `country` | Země návštěvníků |
-| `region` | Regiony/kraje návštěvníků |
-| `city` | Města návštěvníků |
-| `browser` | Názvy prohlížečů (Chrome, Firefox, Safari, …) |
-| `os` | Operační systémy (Windows, macOS, iOS, Android, …) |
-| `device_type` | Kategorie zařízení (desktop, mobile, tablet) |
-| `language` | Nastavení jazyka prohlížeče |
-| `utm_source` | UTM source parametr |
-| `utm_medium` | UTM medium parametr |
-| `utm_campaign` | UTM campaign parametr |
-| `utm_content` | UTM content parametr |
-| `utm_term` | UTM term parametr |
+### Analytics
 
----
+```
+User: "How's the site traffic this month?"
+→ nksweb_analytics_overview { startDate: "2026-03-01" }
 
-## Struktura projektu
+User: "What browsers do our visitors use?"
+→ nksweb_analytics_metric { metric: "browser", limit: 10 }
+
+User: "Show country breakdown for last week"
+→ nksweb_analytics_metric { metric: "country",
+    startDate: "2026-03-02", endDate: "2026-03-09" }
+
+User: "Top 5 most visited pages"
+→ nksweb_analytics_pages { limit: 5 }
+
+User: "Where does our traffic come from?"
+→ nksweb_analytics_referrers {}
+```
+
+### Multi-Tenant
+
+```
+User: "What tenants are available?"
+→ nksweb_list_tenants {}
+
+User: "Switch to the acme tenant"
+→ nksweb_set_tenant { slug: "acme" }
+
+User: "Now list their pages"
+→ nksweb_list_pages {}  (automatically targets acme)
+
+User: "Go back to default"
+→ nksweb_set_tenant { slug: "" }
+```
+
+### Articles & News
+
+```
+User: "Create an article about our new feature"
+→ nksweb_create_article { title: "Introducing Smart Search",
+    url: "introducing-smart-search", status: 1,
+    content: "<p>We're excited to announce...</p>" }
+
+User: "List all news items"
+→ nksweb_list_news {}
+
+User: "Delete news item #5"
+→ nksweb_delete_news { id: 5 }
+```
+
+### Settings & Redirects
+
+```
+User: "What settings does this tenant have?"
+→ nksweb_list_settings {}
+
+User: "Add a redirect from /old-page to /new-page"
+→ nksweb_create_redirect { source: "/old-page", target: "/new-page",
+    statusCode: 301, isActive: true }
+
+User: "Show all contact form messages"
+→ nksweb_list_messages {}
+```
+
+## Project Structure
 
 ```
 nksweb-mcp/
 ├── src/
-│   ├── index.ts          # Vstupní bod, nastavení MCP serveru
-│   ├── client.ts         # HTTP klient s přepínáním tenantů (X-Tenant hlavička)
-│   ├── constants.ts      # Timeouty a limity
+│   ├── index.ts          # Entry point, MCP server setup
+│   ├── client.ts         # HTTP client with tenant switching (X-Tenant header)
+│   ├── constants.ts      # Timeouts and limits
 │   └── tools/
-│       ├── pages.ts      # Stránky + content bloky (8 nástrojů)
-│       ├── articles.ts   # Články CRUD (5 nástrojů)
-│       ├── categories.ts # Kategorie CRUD (5 nástrojů)
-│       ├── news.ts       # Novinky CRUD (5 nástrojů)
-│       ├── files.ts      # Správa souborů (3 nástroje)
-│       ├── users.ts      # Uživatelé CRUD (5 nástrojů)
-│       ├── messages.ts   # Správa zpráv (4 nástroje)
-│       ├── redirects.ts  # Přesměrování CRUD (5 nástrojů)
-│       ├── settings.ts   # Správa nastavení (3 nástroje)
-│       ├── analytics.ts  # Analytické dotazy (4 nástroje)
-│       └── tenants.ts    # Multi-tenant přepínání (2 nástroje)
+│       ├── pages.ts      # Pages + content blocks (8 tools)
+│       ├── articles.ts   # Articles CRUD (5 tools)
+│       ├── categories.ts # Categories CRUD (5 tools)
+│       ├── news.ts       # News CRUD (5 tools)
+│       ├── files.ts      # Files management (3 tools)
+│       ├── users.ts      # Users CRUD (5 tools)
+│       ├── messages.ts   # Messages management (4 tools)
+│       ├── redirects.ts  # Redirects CRUD (5 tools)
+│       ├── settings.ts   # Settings management (3 tools)
+│       ├── analytics.ts  # Analytics queries (4 tools)
+│       └── tenants.ts    # Multi-tenant switching (2 tools)
 ├── tests/
 │   └── integration.test.ts
-├── build/                # Zkompilovaný JS výstup
+├── build/                # Compiled JS output
 ├── package.json
 ├── tsconfig.json
 └── LICENSE
 ```
 
----
+## Links
 
-## Příklady
+- [NKS-Web CMS](https://nks-hub.cz)
+- [npm Package](https://www.npmjs.com/package/@nks-hub/nksweb-mcp)
+- [@nks-hub/rybbit-mcp](https://github.com/nks-hub/rybbit-mcp) — MCP server for Rybbit Analytics
+- [@nks-hub/rybbit-ts](https://github.com/nks-hub/rybbit-ts) — TypeScript tracking SDK
 
-### Správa obsahu
-
-```
-Uživatel: "Vypiš všechny aktivní stránky"
-→ nksweb_list_pages { status: 1 }
-
-Uživatel: "Najdi stránky obsahující 'pricing'"
-→ nksweb_list_pages { search: "pricing" }
-
-Uživatel: "Ukaž mi homepage"
-→ nksweb_list_pages { type: "homepage" }
-
-Uživatel: "Vytvoř novou FAQ stránku"
-→ nksweb_create_page { name: "FAQ", url: "faq", type: "faq", status: 1,
-    content: "<h1>Často kladené otázky</h1>" }
-
-Uživatel: "Aktualizuj hero nadpis na homepage"
-→ nksweb_upsert_content_block { pageId: 14, key: "hero_heading",
-    content: "Digitální řešení, která fungují", label: "Hero Heading" }
-```
-
-### Analytika
-
-```
-Uživatel: "Jak je na tom návštěvnost tento měsíc?"
-→ nksweb_analytics_overview { startDate: "2026-03-01" }
-
-Uživatel: "Jaké prohlížeče používají naši návštěvníci?"
-→ nksweb_analytics_metric { metric: "browser", limit: 10 }
-
-Uživatel: "Ukaž rozdělení podle zemí za poslední týden"
-→ nksweb_analytics_metric { metric: "country",
-    startDate: "2026-03-02", endDate: "2026-03-09" }
-
-Uživatel: "Top 5 nejnavštěvovanějších stránek"
-→ nksweb_analytics_pages { limit: 5 }
-
-Uživatel: "Odkud nám chodí návštěvnost?"
-→ nksweb_analytics_referrers {}
-```
-
-### Multi-tenant
-
-```
-Uživatel: "Jací tenanti jsou k dispozici?"
-→ nksweb_list_tenants {}
-
-Uživatel: "Přepni na tenant acme"
-→ nksweb_set_tenant { slug: "acme" }
-
-Uživatel: "Teď vypiš jejich stránky"
-→ nksweb_list_pages {}  (automaticky cílí na acme)
-
-Uživatel: "Vrať se na výchozí"
-→ nksweb_set_tenant { slug: "" }
-```
-
-### Články a novinky
-
-```
-Uživatel: "Vytvoř článek o naší nové funkci"
-→ nksweb_create_article { title: "Představujeme chytré vyhledávání",
-    url: "predstavujeme-chytre-vyhledavani", status: 1,
-    content: "<p>S radostí oznamujeme...</p>" }
-
-Uživatel: "Vypiš všechny novinky"
-→ nksweb_list_news {}
-
-Uživatel: "Smaž novinku #5"
-→ nksweb_delete_news { id: 5 }
-```
-
-### Nastavení a přesměrování
-
-```
-Uživatel: "Jaká nastavení má tento tenant?"
-→ nksweb_list_settings {}
-
-Uživatel: "Přidej přesměrování z /stara-stranka na /nova-stranka"
-→ nksweb_create_redirect { source: "/stara-stranka", target: "/nova-stranka",
-    statusCode: 301, isActive: true }
-
-Uživatel: "Ukaž všechny zprávy z kontaktního formuláře"
-→ nksweb_list_messages {}
-```
-
----
-
-## Vývoj (ze zdrojového kódu)
+## Development
 
 ```bash
 git clone https://github.com/nks-hub/nksweb-mcp.git
 cd nksweb-mcp
 
-# Instalace závislostí
+# Install dependencies
 npm install
 
 # Build
 npm run build
 
-# Watch mód
+# Watch mode
 npm run dev
 
-# Integrační testy
+# Run integration tests
 npm test
 
-# Kontrola typů
+# Type checking
 npx tsc --noEmit
 ```
 
----
+## Contributing
 
-## Požadavky
+Contributions are welcome! For major changes, please open an issue first.
 
-- **Node.js**: 18+
-- **NKS-Web CMS**: Instance se zapnutým API a vytvořeným API klíčem
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'feat: description'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
----
+## Support
 
-## Přispívání
+- 📧 **Email:** dev@nks-hub.cz
+- 🐛 **Bug reports:** [GitHub Issues](https://github.com/nks-hub/nksweb-mcp/issues)
+- 📖 **MCP Protocol:** [modelcontextprotocol.io](https://modelcontextprotocol.io/)
 
-Příspěvky jsou vítány! Pro větší změny prosím nejdříve otevřete issue.
+## License
 
-1. Forkujte repozitář
-2. Vytvořte feature branch (`git checkout -b feature/skvela-funkce`)
-3. Commitněte změny (`git commit -m 'feat: popis'`)
-4. Pushujte branch (`git push origin feature/skvela-funkce`)
-5. Otevřete Pull Request
-
----
-
-## Podpora
-
-- **Email:** dev@nks-hub.cz
-- **Bug reporty:** [GitHub Issues](https://github.com/nks-hub/nksweb-mcp/issues)
-- **MCP Protokol:** [modelcontextprotocol.io](https://modelcontextprotocol.io/)
-
----
-
-## Licence
-
-MIT License — viz [LICENSE](LICENSE).
-
----
-
-## Odkazy
-
-- [NKS-Web CMS](https://nks-hub.cz)
-- [npm balíček](https://www.npmjs.com/package/@nks-hub/nksweb-mcp)
-- [@nks-hub/rybbit-mcp](https://github.com/nks-hub/rybbit-mcp) — MCP server pro Rybbit Analytics
-- [@nks-hub/rybbit-ts](https://github.com/nks-hub/rybbit-ts) — TypeScript tracking SDK
+MIT License — see [LICENSE](LICENSE) for details.
 
 ---
 
