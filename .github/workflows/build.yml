@@ -23,6 +23,7 @@ jobs:
 
       - run: npm ci
       - run: npm run build
+      - run: node --test tests/output-schemas.test.mjs
 
   release:
     needs: build
@@ -54,7 +55,8 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           cache: 'npm'
 
-      - run: npm ci
+      # No install scripts run while this job holds the OIDC publish token; tsc needs none.
+      - run: npm ci --ignore-scripts
       - run: npm run build
       # Trusted publishing (OIDC): npm >= 11.5.1 exchanges the GitHub token, no secret needed.
       - run: npm publish --provenance --access public
