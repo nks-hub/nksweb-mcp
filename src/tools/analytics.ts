@@ -22,7 +22,7 @@ const overviewOutput = {
 
 const breakdownOutput = {
   items: z
-    .array(z.record(z.unknown()))
+    .array(z.record(z.string(), z.unknown()))
     .describe("Ranked breakdown rows (value, visits, percentage, etc.)"),
 };
 

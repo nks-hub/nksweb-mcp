@@ -4,7 +4,7 @@ import { NksWebClient, truncateResponse } from "../client.js";
 
 const tenantsListOutput = {
   status: z.string().nullable().optional(),
-  data: z.array(z.record(z.unknown())).optional().describe("Available tenants"),
+  data: z.array(z.record(z.string(), z.unknown())).optional().describe("Available tenants"),
   currentTenant: z.string().nullable().optional().describe("Currently active tenant slug"),
 };
 
