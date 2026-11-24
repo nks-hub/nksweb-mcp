@@ -8,7 +8,8 @@
  */
 
 import { createRequire } from "node:module";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { McpServer, RegisteredTool } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
 import { NksWebClient, NksWebConfig } from "./client.js";
 import { registerPagesTools } from "./tools/pages.js";
 import { registerArticlesTools } from "./tools/articles.js";
@@ -37,6 +38,27 @@ export const NKSWEB_INSTRUCTIONS =
   "Multi-tenant: Use nksweb_list_tenants to see available tenants, " +
   "then nksweb_set_tenant to switch context. All subsequent operations will target that tenant.";
 
+/**
+ * The API returns more fields than the output schemas list. A plain shape is
+ * advertised as a closed object, which makes validating clients reject those
+ * responses, so every output shape is registered as an open object instead.
+ */
+function openOutputSchemas(server: McpServer): void {
+  const registerTool = server.registerTool.bind(server) as unknown as (
+    name: string,
+    config: { outputSchema?: unknown },
+    handler: unknown
+  ) => RegisteredTool;
+  server.registerTool = ((name: string, config: { outputSchema?: unknown }, handler: unknown) =>
+    registerTool(
+      name,
+      config.outputSchema && !(config.outputSchema instanceof z.ZodType)
+        ? { ...config, outputSchema: z.object(config.outputSchema as z.ZodRawShape).passthrough() }
+        : config,
+      handler
+    )) as typeof server.registerTool;
+}
+
 export async function createNksWebServer(config: NksWebConfig): Promise<McpServer> {
   const client = new NksWebClient(config);
 
@@ -53,6 +75,8 @@ export async function createNksWebServer(config: NksWebConfig): Promise<McpServe
     { name: NKSWEB_SERVER_NAME, version: NKSWEB_SERVER_VERSION },
     { instructions: NKSWEB_INSTRUCTIONS }
   );
+
+  openOutputSchemas(server);
 
   registerPagesTools(server, client);
   registerArticlesTools(server, client);

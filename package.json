@@ -20,7 +20,8 @@
     "dev": "tsc --watch",
     "start": "node build/index.js",
     "start:http": "cross-env MCP_TRANSPORT=http node build/index.js",
-    "test": "tsx tests/integration.test.ts"
+    "test": "tsx tests/integration.test.ts",
+    "test:unit": "npm run build && node --test tests/output-schemas.test.mjs"
   },
   "keywords": [
     "mcp",
